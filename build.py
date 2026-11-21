@@ -1468,18 +1468,18 @@ def draw_card(img, draw, card, x, y0):
     for line in lines:
         draw.text((x + 6, ty), line, font=font, fill=INK, anchor="la")
         ty += leading
-    # BADGE RULE (2026-11-21, user-confirmed): medium cards show NO
-    # CONFIRMED badge — an unmarked medium card reads as confirmed
-    # (see the footer legend). REPORTED / CLAIMED badges stay exactly
-    # as they are. Leads (draw_lead) keep their CONFIRMED badges.
-    if card["status"] != "CONFIRMED":
-        badge(draw, x + 6, y0 + 118, card["status"], 10, 8.5)
+    # BADGE RULE (2026-11-22, user order): CONFIRMED is back on the
+    # medium cards — every card shows its status badge (12 CONFIRMED,
+    # 3 REPORTED, 1 CLAIMED across the 16 lead/card stories). The
+    # 2026-11-21 "no CONFIRMED badge on medium cards" rule is gone.
+    badge(draw, x + 6, y0 + 118, card["status"], 10, 8.5)
     # SOURCE 11px (was 9px, 2026-11-21 user order: bigger so it
-    # reads clearly). Widest source ("PassBlue · Apex Wire", 107px)
-    # is on a CONFIRMED card (no badge); the widest badged source
-    # ("The Guardian" / "Reuters · BBC", ~71px) clears the badge
-    # (ends ~x+76) by ~7px. Uppercase has no descenders, so the
-    # baseline at y0+127 stays 3px clear of the card bottom.
+    # reads clearly). Widest badged source is now "PassBlue · Apex"
+    # (80.7px, card 7, shortened 2026-11-22 so it clears the
+    # restored CONFIRMED badge by 3.5px); the other CONFIRMED cards'
+    # sources clear the badge (ends ~x+70) by 20px or more. Uppercase
+    # has no descenders, so the baseline at y0+127 stays 3px clear
+    # of the card bottom.
     draw.text((x + w - 6, y0 + 127), card["source"].upper(),
               font=arch(11, 700, 80), fill=SOURCE, anchor="rs")
 
@@ -2567,6 +2567,11 @@ def draw_bottom_strip(draw):
     # both edges at 9.5px. Dropped to 9px so the longer line fits
     # on one line again (ink span ~5..1019, like round 5); no
     # text was cut.
+    # ROUND 7h (2026-11-22, user order): CONFIRMED is back on the
+    # cards, so "Unmarked = confirmed." is replaced by the legend
+    # item "CONFIRMED = verified." — the footer now explains all
+    # three status tags. New line 992.7px at 9px (span 15.7..1008.3),
+    # still one line at 9px; no font change needed.
     draw.line([12, 1001, 1012, 1001], fill=(64, 60, 50), width=2)
     draw.text((512, 1013.5), S.FOOTER_TEXT, font=inter(9, 400), fill=MUTED,
               anchor="ms")

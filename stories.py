@@ -5,11 +5,11 @@ region of every story come from stories.json. Thirty-nine stories: ids 1-4
 are the leads, 5-16 the medium cards, and 23 briefs (ids 17-19, 21,
 23, 25-29, 31, 33, 35, 36, 38-43, 47, 50, 51). Badges on
 the 16 lead/card stories: 12 CONFIRMED, 3 REPORTED (8, 12, 13),
-1 CLAIMED (15). Badges SHOWN (2026-11-21,
-user-confirmed): CONFIRMED only on the 4 leads (1-4) — the 8 CONFIRMED
-medium cards (5, 6, 7, 9, 10, 11, 14, 16) show no badge, and an unmarked
-medium card reads as confirmed; REPORTED / CLAIMED badges on the
-medium cards are unchanged.
+1 CLAIMED (15). Badges SHOWN (2026-11-22, user order): CONFIRMED
+is back on every confirmed card — all 16 lead/card stories show
+their status badge (12 CONFIRMED, 3 REPORTED, 1 CLAIMED); the
+footer legend explains all three tags, and "Unmarked = confirmed."
+is gone.
 """
 
 REGION_COLOURS = {
@@ -133,7 +133,10 @@ CARDS = [
         # Second source (2026-11-21): Apex Wire independently reported
         # the same ninth-poll deadlock (Grynspan 10/4/1, veto blocks) —
         # so this is genuinely two-source confirmed, not single-source.
-        "source": "PassBlue · Apex Wire", "status": "CONFIRMED",
+        # SOURCE (2026-11-22, user order): one source removed so the
+        # restored CONFIRMED badge fits comfortably — kept PassBlue
+        # (the UN specialist), dropped Apex.
+        "source": "PassBlue", "status": "CONFIRMED",
     },
     {
         "id": 8, "region": "Middle East", "kicker": "MIDDLE EAST · IRAN WAR",
@@ -155,7 +158,9 @@ CARDS = [
         # Second source (2026-11-21): Reuters independently reported
         # the Hodeidah strike + five drones/one missile intercepted —
         # so this is genuinely two-source confirmed, not single-source.
-        "source": "Arab News · Reuters", "status": "CONFIRMED",
+        # SOURCE (2026-11-22, user order): "Arab News" shortened to
+        # "AN" — the credit now reads "AN · Reuters".
+        "source": "AN · Reuters", "status": "CONFIRMED",
     },
     {
         "id": 10, "region": "Latin America",
@@ -410,13 +415,13 @@ SPORTS_TEXT = (
 # closing values). "Original drawings." dropped and the opening
 # shortened to "Friday 20 November 2026." so the line still fits the
 # 1000px content width at 9.5px on ONE line (measured 990.5px).
-# ROUND 7f (2026-11-22, user order): "closing values" is wrong for
-# Bitcoin, which trades 24 h — the market figures are day changes,
-# Bitcoin's a 24 h one. New line measures 960.5px at 9.5px, still
-# one line.
+# ROUND 7h (2026-11-22, user order): CONFIRMED is back on the
+# cards — "Unmarked = confirmed." is gone, replaced by the
+# CONFIRMED legend item. New line measures 992.7px at 9px
+# (span 15.7..1008.3), still one line at the 9px footer font.
 FOOTER_TEXT = (
-    "Friday 20 November 2026. CLAIMED = one side's account. REPORTED = "
-    "as stated. Unmarked = confirmed. Times are UTC; local date counts; "
+    "Friday 20 November 2026. CONFIRMED = verified. CLAIMED = one side's "
+    "account. REPORTED = as stated. Times are UTC; local date counts; "
     "market figures are day changes (Bitcoin: 24 h). Sources: Reuters, AP, BBC, AFP, "
     "Al Jazeera."
 )

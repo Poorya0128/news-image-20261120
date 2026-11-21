@@ -1,7 +1,7 @@
 """Render entry.png: the world's news of Friday 20 November 2026.
 
 A single 1024x1024 newspaper front page drawn entirely with Pillow:
-masthead, a full-width UTC timeline ruler, four lead
+masthead, a UTC timeline strip and a day-in-numbers strip, four lead
 stories (the S&P 500 card is a dark-navy anchor), twelve medium cards,
 a world map with 16 numbered dots and a 7-region colour legend (no
 leader lines, no anchor dots, no brief dots), twenty-three briefs with real flags,
@@ -274,6 +274,58 @@ def _flag_image(code, w, h):
     return _flag_cache[key]
 
 
+USER_ART_DIR = HERE / "assets" / "user-art"
+# USER ART (2026-11-22, ROUND 7e — user order): the 16 lead/card
+# illustrations are the user's own Gemini generations, not Pillow
+# drawings. Each is a flat vector newspaper illustration in the
+# paper palette, with big bold text — the user ignored the "no
+# text" instruction and wants the text in the images as-is, so
+# they are pasted verbatim. Files are named by slot: lead1..4,
+# card5..16. Lead images are 1024x301 (aspect 3.40; the lead box
+# 244x72 is 3.39); card images are 1024x268 (3.82; the card box
+# 160x42 is 3.81) or 1024x254 (4.03, slightly wider than the box).
+# The loader resizes to the box width and pads the short side
+# with PAPER (the page's cream) so no text is ever cropped — the
+# widest cards pad ~1px top/bottom at 1x, invisible against the
+# image's own cream ground. Loaded from local disk only — no
+# network at runtime. Iran uses the FIRST version
+# (image_6_hvoy.jpg, 1024x268): the second version the user sent
+# (1024x254) fits the box worse.
+USER_ART = {
+    1: "lead1_poland.jpg", 2: "lead2_kyiv.jpg", 3: "lead3_akvan.jpg",
+    4: "lead4_sp.jpg",
+    5: "card5_cop31.jpg", 6: "card6_ukeu.jpg", 7: "card7_un.jpg",
+    8: "card8_iran.jpg", 9: "card9_hodeidah.jpg", 10: "card10_peru.jpg",
+    11: "card11_palisades.jpg", 12: "card12_pill.jpg",
+    13: "card13_nvidia.jpg", 14: "card14_iraq.jpg",
+    15: "card15_gaza.jpg", 16: "card16_genz.jpg",
+}
+
+_art_cache = {}
+
+
+def _user_art(art_id, w, h):
+    """User's illustration for lead/card art_id, fitted into a w x h
+    box (1x px) at SS resolution. Cached per (id, w, h)."""
+    key = (art_id, w, h)
+    if key not in _art_cache:
+        src = Image.open(USER_ART_DIR / USER_ART[art_id]).convert("RGB")
+        tw, th = w * SS, h * SS
+        nw = tw
+        nh = round(src.height * tw / src.width)
+        img = src.resize((nw, nh), Image.LANCZOS)
+        if nh >= th:
+            # Taller than the box: centre-crop (never happens for
+            # the current set — all are wider than their box).
+            tile = img.crop((0, (nh - th) // 2, tw,
+                             (nh - th) // 2 + th))
+        else:
+            tile = Image.new("RGB", (tw, th), PAPER)
+            tile.paste(img, (0, (th - nh) // 2))
+        _art_cache[key] = tile
+    return _art_cache[key]
+
+
 def _load(path, size, axes):
     """Load a variable font at size, then set its axes; fall back to the
     font as loaded if the axes call fails."""
@@ -475,115 +527,148 @@ def quad(p0, p1, p2, n=24):
 # ---------------------------------------------------------------- masthead
 
 def draw_masthead(draw):
-    # MASTHEAD (2026-11-21, reference-layout rebuild): the title is
-    # 64px SemiBold (was 68px) and the REGION KEY IS GONE — dropped
-    # entirely (user order: it had no good home; the reference works
-    # without a separate key — the region colours live in the
-    # kickers, the map dots and the briefs group headers). The
-    # kicker line is back to just the two texts: "THE DAY IN WORLD
-    # NEWS" left, "39 STORIES · 7 REGIONS · ALL FROM THIS FRIDAY"
-    # right. Title at y=8, 64px: its caps start ~y=18 (the kicker's
-    # ink ends ~y=17, so ~1px clear — the same tightness the 68px
-    # title had at y=7). The 'y' descender now ends ~y=87 (was
-    # 91): the masthead band shrinks ~4px, given to the timeline
-    # and leads below.
-    draw.text((12, 6), "THE DAY IN WORLD NEWS", font=inter(12, 800),
-              fill=RED, anchor="la")
-    draw.text((1012, 6), "39 STORIES · 7 REGIONS · ALL FROM THIS FRIDAY",
-              font=inter(10.5, 700), fill=DEK, anchor="ra")
-    size = 64
-    while size >= 64:
-        font = title_font(size)
-        if font.getlength("Friday 20 November 2026") <= 1000:
-            break
-        size -= 2
-    draw.text((12, 8), "Friday 20 November 2026",
-              font=title_font(size), fill=(20, 20, 20), anchor="la")
+    # MASTHEAD (2026-11-22, ROUND 7c — user order: CENTRED).
+    # One centred top line — the kicker (red) + " · " + the issue
+    # line (DEK) — then the 64px title centred on x=512. The
+    # stacked kicker / title / issue-line block would have forced
+    # the title down to ~56px and squeezed the strips; the
+    # combined top line keeps the title at its full 64px and both
+    # strips at 51px, and still reads as one centred masthead
+    # block. Title 64px = 797.5px wide (spans ~113..911); top
+    # line ~420px wide (spans ~302..722). Top line shares
+    # baseline y=16; the title's caps start ~y=18, so ~2px clear.
+    # The region key stays gone (see 2026-11-21).
+    kicker = "THE DAY IN WORLD NEWS"
+    issue = "39 STORIES · 7 REGIONS · ALL FROM THIS FRIDAY"
+    kf, inf = inter(12, 800), inter(10.5, 700)
+    sep, sf = " · ", inter(12, 800)
+    total = (kf.getlength(kicker) + sf.getlength(sep)
+             + inf.getlength(issue))
+    x = 512 - total / 2
+    draw.text((x, 16), kicker, font=kf, fill=RED, anchor="ls")
+    x += kf.getlength(kicker)
+    draw.text((x, 16), sep, font=sf, fill=DEK, anchor="ls")
+    x += sf.getlength(sep)
+    draw.text((x, 16), issue, font=inf, fill=DEK, anchor="ls")
+    draw.text((512, 8), "Friday 20 November 2026",
+              font=title_font(64), fill=(20, 20, 20), anchor="ma")
 
 
-def draw_timeline(draw):
-    # TIMELINE, COMPACT (2026-11-21, reference-layout rebuild): one
-    # tight band, ~50px (was 62px) — the reference's timeline is a
-    # single compact line, and ours was the tallest element after
-    # the masthead. Event type is 10.5px (was 12px), dots 12px
-    # diameter (was 14px), hour labels 9px (was 10px), and the
-    # "THE DAY / IN UTC" label 11px (was 12px). Same 5 events, same
-    # times/labels/anchors/regions, same stem-and-rule connectors
-    # (colour-coded by region), same 25 hourly ticks (numbers only
-    # on 06/12/18/24 — the "00:00" label is DROPPED, round 5
-    # 2026-11-21: it crowded the first event dot at x=107; its tick
-    # mark stays). Geometry (band caps ~91 .. descenders
-    # ~144, leads start at y=147):
-    #   above-event labels, baseline 99 (caps ~91, ~4px clear of
-    #     the title descender at ~87); connector rule y=103..105;
-    #     stem y=105..108
-    #   ruler line y=112..115 (3px), dots centred on y=113.5,
-    #     12px diameter (6px white halo / 5px colour centre)
-    #   hour ticks below the line, hour labels (every 6h, 9px)
-    #     baseline 128
-    #   below-event labels, baseline 141 (descenders to ~144, 4px
-    #     clear of the lead row at 148); stem y=120..130
-    draw.text((12, 110), "THE DAY", font=inter(11, 800), fill=RED,
+def draw_timeline_strip(draw):
+    # TIMELINE STRIP (2026-11-22, ROUND 7d — user order): TEXTUAL
+    # with a STACKED LABEL COLUMN. The label reads "WORLD IN /
+    # TIME (UTC)" — two lines, red Inter 13/800, left-aligned
+    # at x=12, baselines y=113/130 — in a label column x 12..95,
+    # the SAME width as the numbers strip's label column so both
+    # strips align (vertical divider at x=95, y 99..134, matching
+    # the numbers divider). "TIME (UTC)" is 73.0px at 13px, so it
+    # fits the 83px column on one line — no third line needed.
+    # It pairs with the numbers label "WORLD IN / NUMBERS".
+    # The 5 slots narrow to x 95..1012 (slot 183.4px, centres
+    # 186.7/370.1/553.5/736.9/920.3); each slot is still two lines
+    # of masthead serif — time 18px Merriweather 900 in the
+    # event's region colour above, event 16px Merriweather 700
+    # ink below. ROUND 7f (2026-11-22, user order): "takes" was
+    # stronger than card 14's "enters … unopposed", so the strip
+    # now says "enters" to match. ROUND 7g (2026-11-22, user
+    # order): the events stuck together — at 17px "Iraq enters
+    # Jurf al-Nasr" was 191.9px (8.5px over its slot) and only
+    # 2.9px from "COP31 into overtime". Dropped the event to
+    # 16px (Iraq now 180.7px, fits) and put a 1px vertical
+    # divider at each interior slot boundary (y 99..134, same
+    # style as the x=95 label divider) so the slots read as
+    # separate columns. Only the strip boundary rules stay
+    # (top y=91, bottom y=142).
+    draw.line([12, 91, 1012, 91], fill=(90, 85, 75), width=1)
+    lab = inter(13, 800)
+    draw.text((12, 113), "WORLD IN", font=lab, fill=RED, anchor="ls")
+    draw.text((12, 130), "TIME (UTC)", font=lab, fill=RED,
               anchor="ls")
-    draw.text((12, 122), "IN UTC", font=inter(11, 800), fill=RED,
+    draw.line([95, 99, 95, 134], fill=PANEL_BORDER, width=1)
+    events = [("Overnight", "Kyiv bridges hit",
+               S.REGION_COLOURS["Europe"]),
+              ("02:30", "Missiles hit Poland",
+               S.REGION_COLOURS["Europe"]),
+              ("11:00", "Iraq enters Jurf al-Nasr",
+               S.REGION_COLOURS["Middle East"]),
+              ("14:00", "COP31 into overtime",
+               S.REGION_COLOURS["Global"]),
+              ("21:00", "S&P in correction", RED)]
+    x0, x1 = 95, 1012
+    slot = (x1 - x0) / len(events)
+    for i, (time, label, colour) in enumerate(events):
+        cx = x0 + (i + 0.5) * slot
+        draw.text((cx, 112), time, font=merr(18, 900), fill=colour,
+                  anchor="ms")
+        draw.text((cx, 134), label, font=merr(16, 700), fill=INK,
+                  anchor="ms")
+    # ROUND 7g: vertical dividers between the slots so the times
+    # and events don't stick together (same y 99..134 and style
+    # as the x=95 label divider).
+    for i in range(1, len(events)):
+        bx = x0 + i * slot
+        draw.line([bx, 99, bx, 134], fill=PANEL_BORDER, width=1)
+    draw.line([12, 142, 1012, 142], fill=(90, 85, 75), width=1)
+
+
+def draw_numbers_strip(draw):
+    # NUMBERS STRIP (2026-11-22, ROUND 7c — user order): the fenced
+    # stat band stays, but the values are now masthead serif —
+    # 32px Merriweather 900 at width 92 (the width axis is what
+    # lets "300,000+" fit: 147.6px at width 92 vs 153.8px at
+    # width 100 in a 152.8px slot) — and each value wears its
+    # region colour (111/404 Europe blue, 300,000+ Asia purple;
+    # the three market numbers keep their red). Labels are richer
+    # and now in the masthead serif too, 12px Merriweather 700,
+    # DEK: "Russian missiles on Kyiv" is the longest at 146.3px,
+    # ~6px spare in its slot. The label is STACKED (2026-11-22,
+    # ROUND 7d — user order): "WORLD IN" / "NUMBERS" on two lines,
+    # red Inter 13/800, left-aligned at x=12, baselines y=163/180
+    # — vertically centred in the 51px strip and aligned with the
+    # timeline strip's stacked label column (same x 12..95 width,
+    # divider at x=95). It pairs with the timeline label
+    # "WORLD IN / TIME (UTC)". Geometry: strip y 142..193 (51px);
+    # value baseline 170 (caps ~148..170), label baseline 187
+    # (caps ~179..187).
+    draw.text((12, 163), "WORLD IN", font=inter(13, 800), fill=RED,
               anchor="ls")
-    draw.rectangle([88, 112, 1012, 115], fill=INK)
-    hour_font = inter(9, 700)
-    for hour in range(25):
-        x = 88 + hour * 38.5
-        if hour % 6 == 0:
-            # Axis NUMBER labels only on 06/12/18/24 (2026-11-21):
-            # the 03/09/15/21 labels collided with event labels, and
-            # the 00:00 label crowded the first event dot (round 5).
-            # Tick marks stay hourly (long tick every 3h, short else).
-            draw.rectangle([x - 1, 116, x + 1, 121], fill=INK)
-            if hour == 0:
-                continue
-            label = "%02d:00" % hour
-            cx = min(max(x, 88 + hour_font.getlength(label) / 2),
-                     1012 - hour_font.getlength(label) / 2)
-            draw.text((cx, 128), label, font=hour_font, fill=DEK,
-                      anchor="ms")
-        else:
-            draw.rectangle([x, 116, x, 119], fill=MUTED)
-    time_font = inter(10.5, 800)
-    label_font = inter(10.5, 700)
-    space = label_font.getlength(" ")
-    for time, x, label, above, anchor, region in S.TIMELINE:
-        colour = S.REGION_COLOURS[region]
-        draw.ellipse([x - 6, 107.5, x + 6, 119.5],
-                     fill=(255, 255, 255))
-        draw.ellipse([x - 5, 108.5, x + 5, 118.5], fill=colour)
-        total = (time_font.getlength(time) + space
-                 + label_font.getlength(label))
-        if anchor == "left":
-            lx = x + 6
-        elif anchor == "right":
-            lx = x - 6 - total
-        else:
-            lx = x - total / 2
-        if above:
-            # Connector rule under the label, joined to the dot by the
-            # stem: for displaced labels the rule runs from the dot's
-            # x to the label's far end; for centred labels it spans
-            # the label and the stem meets it at its midpoint.
-            if anchor == "left":
-                rx0, rx1 = x, lx + total
-            elif anchor == "right":
-                rx0, rx1 = lx, x
-            else:
-                rx0, rx1 = lx, lx + total
-            draw.rectangle([rx0, 103, rx1, 105], fill=colour)
-            draw.rectangle([x - 1, 105, x, 108], fill=colour)
-            base = 99
-        else:
-            # Stem drops from the dot to 1px above the label caps.
-            draw.rectangle([x - 1, 120, x, 130], fill=colour)
-            base = 141
-        draw.text((lx, base), time, font=time_font, fill=colour,
-                  anchor="ls")
-        draw.text((lx + time_font.getlength(time) + space, base), label,
-                  font=label_font, fill=INK, anchor="ls")
+    draw.text((12, 180), "NUMBERS", font=inter(13, 800), fill=RED,
+              anchor="ls")
+    draw.line([95, 150, 95, 185], fill=PANEL_BORDER, width=1)
+    value_font = merr(32, 900, 92)
+    label_font = merr(12, 700)
+    numbers = [("111", "Russian missiles on Kyiv",
+                S.REGION_COLOURS["Europe"]),
+               ("404", "drones over Kyiv",
+                S.REGION_COLOURS["Europe"]),
+               # ROUND 7f (2026-11-22, user order): the strip said
+               # "fled" while card 3 says "to shelters" — unified
+               # on the card's wording. "to shelters from Cyclone
+               # Akvan" is 184px, too wide for the 152.8px slot,
+               # so the label is "to shelters (Akvan)" (110.9px).
+               ("300,000+", "to shelters (Akvan)",
+                S.REGION_COLOURS["Asia"]),
+               # ROUND 7e (2026-11-22, user order): the S&P 500's
+               # closing value 6,910 is demoted — the day's key
+               # market number is the −3.7% drop (it lost its big
+               # display when the S&P lead art became the user's
+               # image). The 6,910 still appears in lead 4's dek
+               # and the MARKETS line.
+               ("−3.7%", "S&P 500", RED),
+               ("\u22125.3%", "Nasdaq", RED),
+               ("\u221214%", "Nvidia", RED)]
+    x0, x1 = 95, 1012
+    slot = (x1 - x0) / len(numbers)
+    for k in range(1, len(numbers)):
+        x = x0 + k * slot
+        draw.line([x, 150, x, 185], fill=PANEL_BORDER, width=1)
+    for i, (value, label, colour) in enumerate(numbers):
+        cx = x0 + (i + 0.5) * slot
+        draw.text((cx, 170), value, font=value_font, fill=colour,
+                  anchor="ms")
+        draw.text((cx, 187), label, font=label_font, fill=DEK,
+                  anchor="ms")
+    draw.line([12, 193, 1012, 193], fill=(90, 85, 75), width=1)
 
 
 # ------------------------------------------------------- lead illustrations
@@ -806,57 +891,20 @@ def draw_lead(draw, img, lead, x, y0):
     badge + source)."""
     w = 244
     region = S.REGION_COLOURS[lead["region"]]
-    if lead["id"] == 4:
-        # DESIGN (bright rebuild 2026-11-21): the top illustration
-        # band (y0..y0+72) is a PALE green tint, not navy — the
-        # rest of the card is the standard white panel, so the
-        # headline, dek, badge and source sit on white like the
-        # other leads. The band ALSO carries the same thin
-        # region-coloured top rule as the other leads (N. America
-        # green, 3px at the very top).
-        # ART: TWO focal elements only, side by side, filling the
-        # full band width — the huge dark-red "-3.7%" on the left,
-        # and a steep falling bright-red chart with a big arrowhead
-        # on the right. The fall reads at a glance, with or without
-        # the headline. Measured: "-3.7%" at merr 44 is 129px wide
-        # (x+10..x+139), so the chart zone starts at x+148 with a
-        # clear gap. (Band 72px, 2026-11-21: all y-offsets scaled
-        # x0.9 from the 80px band; sizes unchanged.)
-        draw.rectangle([x, y0, x + w, y0 + 233], fill=PANEL,
-                       outline=PANEL_BORDER)
-        draw.rectangle([x, y0, x + w, y0 + 72], fill=(232, 238, 228))
-        draw.rectangle([x, y0, x + w, y0 + 3], fill=region)
-        draw.text((x + 10, y0 + 44), "-3.7%", font=merr(44, 900),
-                  fill=RED, anchor="ls")
-        draw.text((x + 10, y0 + 64), "S&P 500 · 6,910",
-                  font=inter(13, 700), fill=INK, anchor="ls")
-        # CHART (rebuilt 2026-11-21, user order): the filled area
-        # under the falling line made the chart read as a big red
-        # TRIANGLE — the area fill is deleted. Now it is a clean
-        # line chart only: two faint gridlines, a thick steep red
-        # falling line, one red dot marking the high at the start,
-        # and a large arrowhead at the end. No filled polygon.
-        for gy in (28, 47):
-            draw.line([(x + 144, y0 + gy), (x + 240, y0 + gy)],
-                      fill=(150, 160, 150), width=1)
-        sp = [(x + 148, y0 + 11), (x + 174, y0 + 25),
-              (x + 200, y0 + 41), (x + 226, y0 + 58)]
-        draw.line(sp, fill=ANCHOR_RED, width=5, joint="curve")
-        draw.ellipse([x + 144, y0 + 7, x + 152, y0 + 15],
-                     fill=RED)
-        draw.polygon([(x + 235, y0 + 63), (x + 222, y0 + 63),
-                      (x + 230, y0 + 52)], fill=ANCHOR_RED)
-        kick_fill, kick_num = region, (255, 255, 255)
-        kick_colour, head_colour, dek_colour = region, INK, DEK
-        src_colour = SOURCE
-    else:
-        draw.rectangle([x, y0, x + w, y0 + 233], fill=PANEL,
-                       outline=PANEL_BORDER)
-        LEAD_ART[lead["id"]](draw, x, y0)
-        draw.rectangle([x, y0, x + w, y0 + 3], fill=region)
-        kick_fill, kick_num = region, (255, 255, 255)
-        kick_colour, head_colour, dek_colour = region, INK, DEK
-        src_colour = SOURCE
+    # USER ART (2026-11-22, ROUND 7e): all four lead illustrations
+    # are the user's Gemini generations, pasted into the 244x72
+    # band. The old Pillow lead art (lead_art_poland / lead_art_2 /
+    # lead_art_akvan and the inline S&P "-3.7%" chart) is superseded
+    # and no longer called. The "-3.7%" figure still appears in
+    # lead 4's dek. The region top rule is drawn over the image's
+    # top 3px, as before.
+    draw.rectangle([x, y0, x + w, y0 + 233], fill=PANEL,
+                   outline=PANEL_BORDER)
+    draw.paste(_user_art(lead["id"], 244, 72), (x, y0))
+    draw.rectangle([x, y0, x + w, y0 + 3], fill=region)
+    kick_fill, kick_num = region, (255, 255, 255)
+    kick_colour, head_colour, dek_colour = region, INK, DEK
+    src_colour = SOURCE
     cy = y0 + 82
     number_circle(draw, x + 8 + 6.5, cy, 13, kick_fill, lead["id"], 9,
                   text_fill=kick_num)
@@ -1366,52 +1414,73 @@ CARD_ART = {
 
 
 def draw_card(img, draw, card, x, y0):
-    # LAYOUT (2026-11-21, reference rebuild): the card is 154px
-    # tall (was 157) — the art band is 42px (was 46) and the whole
-    # text block shifts up 4px with its internal spacing unchanged
-    # (kicker, 3-line headline at 18px/19 leading, 2-line dek,
-    # badge + source).
+    # LAYOUT (2026-11-22, ROUND 7, user order): the card is 130px
+    # tall (was 154) — the DEK IS DELETED entirely, so the headline
+    # alone must carry the meaning (the headlines were rewritten in
+    # stories.py to absorb each dek). The 24px freed per card row
+    # (48px total) funds the two bigger top strips. The art band
+    # stays 42px and the text block is unchanged above the headline
+    # (kicker, headline at up to 17px/19 leading, badge + source).
+    # Headline: tries 17px first, then 16/15/14px, max 3 lines in
+    # the 148px box — the rewritten headlines are short enough to
+    # mostly hold 17px. Badge moves to y0+118, source to y0+127
+    # (both -24px, same 3px clear of the card bottom as before).
+    # ROUND 7d (user order): 19px was tried first and measured,
+    # then 18px — BOTH left card 13's third-line 'p' descender
+    # 1px from the REPORTED badge (the descender sits directly
+    # above the pill, and the font's large ascender means a 1px
+    # size cut only buys ~0-1px at the bottom; moving the block
+    # up would collide with the kicker/circle, and tightening the
+    # leading would collide the lines with each other). 17px is
+    # the minimum that gives EVERY card a real ~3px gap above the
+    # badge and source. The headlines stay Merriweather 900 and
+    # self-contained.
     w = 160
     region = S.REGION_COLOURS[card["region"]]
-    draw.rectangle([x, y0, x + w, y0 + 154], fill=PANEL,
+    draw.rectangle([x, y0, x + w, y0 + 130], fill=PANEL,
                    outline=PANEL_BORDER)
-    art = CARD_ART.get(card["id"])
-    if art is not None:
-        art(draw, x, y0)
-    elif card["id"] == 11:
-        card_art_11(img, draw, x, y0)
-    elif card["id"] == 12:
-        card_art_12(img, draw, x, y0)
+    # USER ART (2026-11-22, ROUND 7e): the card illustration is
+    # the user's Gemini generation, pasted into the 160x42 band.
+    # The old Pillow card art (card_art_5..16) is superseded and
+    # no longer called. The region top rule is drawn over the
+    # image's top 3px, as before.
+    draw.paste(_user_art(card["id"], 160, 42), (x, y0))
     draw.rectangle([x, y0, x + w, y0 + 3], fill=region)
+    if card["id"] == 10:
+        # FRI CHIP (restored 2026-11-22, ROUND 7e, user order):
+        # the quake's Friday local time, so the 00:09 UTC Saturday
+        # time is explained on the card itself — the Date Check
+        # Edge line naming Sat 21 Nov stays deleted, and the
+        # footer "local date counts" alone was not enough. Drawn
+        # over the user's Peru image, top-right, with a 1px white
+        # outline so it reads against the dark skyline.
+        draw.rectangle([x + 96, y0 + 3, x + 158, y0 + 13], fill=INK,
+                       outline=(255, 255, 255))
+        draw.text((x + 127, y0 + 7.5), "FRI 19:09 LOCAL",
+                  font=inter(7, 800), fill=(255, 255, 255), anchor="mm")
     cy = y0 + 50
     number_circle(draw, x + 6 + 6, cy, 12, region, card["id"], 8.5)
     draw.text((x + 21, y0 + 55), card["kicker"], font=inter(9.5, 800),
               fill=region, anchor="ls")
     font, lines, leading = fit_headline(
-        card["headline"], [(18, 19), (16, 18)], 148)
+        card["headline"], [(17, 19), (16, 18), (15, 17), (14, 16)], 148)
     ty = y0 + 57
     for line in lines:
         draw.text((x + 6, ty), line, font=font, fill=INK, anchor="la")
         ty += leading
-    dek_font, dek_lines = fit_dek(card["dek"], 148)
-    ty = y0 + 116
-    for line in dek_lines:
-        draw.text((x + 6, ty), line, font=dek_font, fill=DEK,
-                  anchor="la")
-        ty += dek_font.size + 1.5
     # BADGE RULE (2026-11-21, user-confirmed): medium cards show NO
     # CONFIRMED badge — an unmarked medium card reads as confirmed
     # (see the footer legend). REPORTED / CLAIMED badges stay exactly
     # as they are. Leads (draw_lead) keep their CONFIRMED badges.
     if card["status"] != "CONFIRMED":
-        badge(draw, x + 6, y0 + 142, card["status"], 10, 8.5)
+        badge(draw, x + 6, y0 + 118, card["status"], 10, 8.5)
     # SOURCE 11px (was 9px, 2026-11-21 user order: bigger so it
     # reads clearly). Widest source ("PassBlue · Apex Wire", 107px)
     # is on a CONFIRMED card (no badge); the widest badged source
     # ("The Guardian" / "Reuters · BBC", ~71px) clears the badge
     # (ends ~x+76) by ~7px. Uppercase has no descenders, so the
-    # baseline at y0+151 stays 3px clear of the card bottom.
-    draw.text((x + w - 6, y0 + 151), card["source"].upper(),
+    # baseline at y0+127 stays 3px clear of the card bottom.
+    draw.text((x + w - 6, y0 + 127), card["source"].upper(),
               font=arch(11, 700, 80), fill=SOURCE, anchor="rs")
 
 
@@ -2493,8 +2562,13 @@ def draw_bottom_strip(draw):
     # content edges on both sides, still one line. The opening was
     # shortened from "All stories from Friday 20 November 2026."
     # to fit; no legend item, source name, fact or date was dropped.
+    # ROUND 7f (2026-11-22, user order): "closing values" became
+    # "day changes (Bitcoin: 24 h)" — 54px longer, which clipped
+    # both edges at 9.5px. Dropped to 9px so the longer line fits
+    # on one line again (ink span ~5..1019, like round 5); no
+    # text was cut.
     draw.line([12, 1001, 1012, 1001], fill=(64, 60, 50), width=2)
-    draw.text((512, 1013.5), S.FOOTER_TEXT, font=inter(9.5, 400), fill=MUTED,
+    draw.text((512, 1013.5), S.FOOTER_TEXT, font=inter(9, 400), fill=MUTED,
               anchor="ms")
 
 
@@ -2506,24 +2580,27 @@ def build():
     draw = SSDraw(ImageDraw.Draw(img), img)
     draw.rectangle([5, 5, 1019, 1019], outline=(90, 85, 75), width=1)
     draw_masthead(draw)
-    draw_timeline(draw)
-    # VERTICAL BUDGET, REFERENCE LAYOUT (2026-11-21): masthead
-    # descender ~87; timeline band ~91..144 (below-label
-    # descenders ~144, 4px clear of the leads); leads 148..381
-    # (233px); cards row1 389..543, row2 551..705 (154px each,
-    # 8px gaps); bottom headers baseline 722 (caps ~713, 8px
-    # clear of the cards); bottom section 726..998 (map tile
-    # 726..822, legend 824..846, Date Check box 848..998, briefs
-    # rows 730..~995); footer rule 1001, footer baseline 1013.5,
-    # border 1019.
+    draw_timeline_strip(draw)
+    draw_numbers_strip(draw)
+    # VERTICAL BUDGET, REFERENCE LAYOUT (2026-11-22, ROUND 7 —
+    # bigger winner strips, dek-less cards): masthead descender
+    # ~87; timeline strip 91..142 + numbers strip 142..193 (two
+    # 51px strips, +48px total, funded by the deleted card deks);
+    # leads 196..429 (233px); cards row1 437..567, row2 575..705
+    # (130px each, 8px gaps — the cards end at 705 exactly as
+    # before, so nothing below moves); bottom headers baseline 722
+    # (caps ~713, 8px clear of the cards); bottom section 726..998
+    # (map tile 726..822, legend 824..846, Date Check box 848..998,
+    # briefs rows 730..~995); footer rule 1001, footer baseline
+    # 1013.5, border 1019.
     for lead, x in zip(S.LEADS, (12, 264, 516, 768)):
-        draw_lead(draw, img, lead, x, 148)
+        draw_lead(draw, img, lead, x, 196)
     row1 = S.CARDS[0:6]
     row2 = S.CARDS[6:12]
     for card, x in zip(row1, (12, 180, 348, 516, 684, 852)):
-        draw_card(img, draw, card, x, 389)
+        draw_card(img, draw, card, x, 437)
     for card, x in zip(row2, (12, 180, 348, 516, 684, 852)):
-        draw_card(img, draw, card, x, 551)
+        draw_card(img, draw, card, x, 575)
     draw_bottom_strip(draw)
     draw_map(img, draw)
     draw_briefs(draw)

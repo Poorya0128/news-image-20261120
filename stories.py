@@ -109,26 +109,26 @@ LEADS = [
 CARDS = [
     {
         "id": 5, "region": "Global", "kicker": "GLOBAL · CLIMATE",
-        # ROUND 5 (2026-11-21): COP31 demoted from lead 4 to card 5.
-        # Same headline/facts as the lead (summit runs past its
-        # deadline; a draft deal drops all fossil-fuel phase-out
-        # text). FIT: the lead dek (82 chars) truncates to 2 lines
-        # in the 148px card box even at 9.5px, so the card dek is
-        # the short form — the headline already says "overtime".
-        # New card art: simplified globe + clock.
-        "headline": "COP31 into overtime as draft drops fossil fuels",
+        # ROUND 7 (2026-11-22, user order): dek DELETED — the headline
+        # alone must carry the meaning: "draft drops fossil-fuel
+        # phase-out" absorbs the dek's "phase-out text".
+        "headline": "COP31 overtime; phase-out dropped",
         "dek": "Draft deal drops all fossil-fuel phase-out text.",
         "source": "AP", "status": "CONFIRMED",
     },
     {
         "id": 6, "region": "Europe", "kicker": "EUROPE · DIPLOMACY",
-        "headline": "UK and EU sign post-Brexit deals",
+        # ROUND 7 (2026-11-22): dek DELETED — headline absorbs it:
+        # the deals cover food, carbon and youth.
+        "headline": "UK–EU deals on food, carbon, youth",
         "dek": "Food exports, carbon markets, youth scheme for 18–31s.",
         "source": "BBC", "status": "CONFIRMED",
     },
     {
         "id": 7, "region": "Global", "kicker": "GLOBAL · UNITED NATIONS",
-        "headline": "UN chief race stalls after ninth vote",
+        # ROUND 7 (2026-11-22): dek DELETED — headline absorbs it:
+        # the ninth vote ended in a veto deadlock.
+        "headline": "UN chief race deadlocked by veto",
         "dek": "Ninth poll leaves every candidate blocked by a veto.",
         # Second source (2026-11-21): Apex Wire independently reported
         # the same ninth-poll deadlock (Grynspan 10/4/1, veto blocks) —
@@ -137,13 +137,20 @@ CARDS = [
     },
     {
         "id": 8, "region": "Middle East", "kicker": "MIDDLE EAST · IRAN WAR",
-        "headline": "Iran war nears ninth month; Trump in no rush",
+        # ROUND 7 (2026-11-22): dek DELETED — headline absorbs it.
+        # ROUND 7e (2026-11-22, user order): "delays" attributed
+        # the decision to Trump; CBS says "no decision until
+        # 2027", so the headline quotes that, Trump as source.
+        "headline": "No Iran decision until 2027, Trump says",
         "dek": "Trump: no decision on next Iran step until 2027.",
         "source": "CBS News", "status": "REPORTED",
     },
     {
         "id": 9, "region": "Middle East", "kicker": "MIDDLE EAST · YEMEN",
-        "headline": "Saudi coalition strikes Hodeidah port",
+        # ROUND 7 (2026-11-22): dek DELETED — headline absorbs it.
+        # ROUND 7e (2026-11-22, user order): the old headline lost
+        # the subject — the Saudi-led coalition did the hitting.
+        "headline": "Saudi-led coalition hits Hodeidah port",
         "dek": "Port hit after five Houthi drones were intercepted.",
         # Second source (2026-11-21): Reuters independently reported
         # the Hodeidah strike + five drones/one missile intercepted —
@@ -153,24 +160,28 @@ CARDS = [
     {
         "id": 10, "region": "Latin America",
         "kicker": "LATIN AMERICA · QUAKE",
-        "headline": "Magnitude 6.7 earthquake hits central Peru",
+        # ROUND 7 (2026-11-22): dek DELETED — headline absorbs it:
+        # Lima was shaken, no tsunami.
+        "headline": "6.7 quake hits Peru, shakes Lima",
         "dek": "Quake near Cerro de Pasco shook Lima; no tsunami.",
         "source": "USGS", "status": "CONFIRMED",
     },
     {
         "id": 11, "region": "North America", "kicker": "N. AMERICA · WILDFIRE",
-        "headline": "Jury convicts man over deadly Palisades Fire",
+        # ROUND 7 (2026-11-22): dek DELETED — headline absorbs it:
+        # arson conviction, 12 killed.
+        "headline": "Arson conviction in Palisades Fire, 12 dead",
         "dek": "Guilty of arson in the fire that killed 12 people.",
         "source": "AP", "status": "CONFIRMED",
     },
     {
         "id": 12, "region": "Global", "kicker": "GLOBAL · HEALTH",
-        "headline": "Pill shows promise against pancreatic cancer",
-        # P4 (2026-11-21): "nearly all" was hype — the trial's
-        # objective response rate is 60.7% of 61 patients. Precise
-        # figure replaces the exaggeration (rivals quote 60.7%).
-        # FIT (2026-11-21): "(Guardian)" dropped — the source credit
-        # already shows The Guardian, and the full dek truncated.
+        # ROUND 7 (2026-11-22): dek DELETED — headline absorbs it:
+        # the 60.7% response figure is now in the headline.
+        # ROUND 7e (2026-11-22, user order): "early trial" added —
+        # the green check in the art reads as a certain cure, so
+        # the headline must carry the early-trial hedge.
+        "headline": "Pancreatic pill: 60.7% respond in early trial",
         "dek": "Daraxonrasib + chemo: 60.7% of 61 responded in an "
                "early trial.",
         "source": "The Guardian", "status": "REPORTED",
@@ -182,7 +193,9 @@ CARDS = [
         # headline's cause is now neutral: "on" -> "amid"
         # ("Nvidia sinks 14% amid SEC probe and AI-tax threat").
         # Art "-14%" unchanged.
-        "headline": "Nvidia sinks 14% amid SEC probe and AI-tax threat",
+        # ROUND 7 (2026-11-22): dek DELETED — headline absorbs it:
+        # SEC probes Nvidia's accounts; Trump eyes an AI tax.
+        "headline": "Nvidia sinks 14% on SEC probe, AI tax",
         "dek": "SEC probing Nvidia accounts; Trump threatens "
                "AI-centre tax.",
         "source": "Reuters · BBC", "status": "REPORTED",
@@ -195,20 +208,26 @@ CARDS = [
         # handover ~14:00 Baghdad time) is a card now; the cricket
         # card it replaces moves to the SPORT line. New card art:
         # Iraq map + red star + tricolour flag.
-        "headline": "Iraq enters Jurf al-Nasr",
+        # ROUND 7 (2026-11-22): dek DELETED — headline absorbs it:
+        # place, group and no resistance all in the headline.
+        "headline": "Iraq enters Jurf al-Nasr unopposed",
         "dek": "Forces enter Kataeb Hezbollah stronghold; no "
                "resistance.",
         "source": "AFP", "status": "CONFIRMED",
     },
     {
         "id": 15, "region": "Middle East", "kicker": "MIDDLE EAST · GAZA",
-        "headline": "Israeli strikes kill six in Gaza; truce frays",
+        # ROUND 7 (2026-11-22): dek DELETED — headline absorbs it:
+        # troops crossed the Yellow Line.
+        "headline": "Gaza strikes kill six; troops cross line",
         "dek": "Six killed as troops cross the Yellow Line near Nuseirat.",
         "source": "Al Jazeera", "status": "CLAIMED",
     },
     {
         "id": 16, "region": "Europe", "kicker": "EUROPE · PROTESTS",
-        "headline": "Gen Z protests sweep 25 European countries",
+        # ROUND 7 (2026-11-22): dek DELETED — headline absorbs it:
+        # the cause is costs and spending.
+        "headline": "Gen Z protests 25 countries over costs",
         "dek": "Students march in 25 countries over costs and spending.",
         "source": "BBC", "status": "CONFIRMED",
     },
@@ -376,10 +395,13 @@ MARKETS_SEGMENTS = [
 # "Phillips 118 vs India" (the card is gone; Iraq took its slot).
 # Harden's item is shortened (", Cavs 128–119 Pacers" -> ", Cavs win")
 # so all 5 items still fit in 4 lines at 12.5px.
+# ROUND 7f (2026-11-22, user order): "Phillips 118 vs India" is
+# ambiguous — say whose Phillips and what he did: NZ's Phillips
+# hits 118 vs India.
 SPORTS_TEXT = (
     "Alcaraz beats Cobolli at ATP Finals  ·  A Lim Kim aces 16th, leads "
     "LPGA finale  ·  Price undisputed welterweight champion  ·  Harden's "
-    "50th 50-pt game, Cavs win  ·  Phillips 118 vs India"
+    "50th 50-pt game, Cavs win  ·  NZ's Phillips hits 118 vs India"
 )
 
 # ROUND 5 (2026-11-21): footer rewritten — "Times are UTC; local date
@@ -388,9 +410,13 @@ SPORTS_TEXT = (
 # closing values). "Original drawings." dropped and the opening
 # shortened to "Friday 20 November 2026." so the line still fits the
 # 1000px content width at 9.5px on ONE line (measured 990.5px).
+# ROUND 7f (2026-11-22, user order): "closing values" is wrong for
+# Bitcoin, which trades 24 h — the market figures are day changes,
+# Bitcoin's a 24 h one. New line measures 960.5px at 9.5px, still
+# one line.
 FOOTER_TEXT = (
     "Friday 20 November 2026. CLAIMED = one side's account. REPORTED = "
     "as stated. Unmarked = confirmed. Times are UTC; local date counts; "
-    "market figures are closing values. Sources: Reuters, AP, BBC, AFP, "
+    "market figures are day changes (Bitcoin: 24 h). Sources: Reuters, AP, BBC, AFP, "
     "Al Jazeera."
 )

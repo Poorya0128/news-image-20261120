@@ -3,8 +3,8 @@
 A single 1024x1024 newspaper front page drawn entirely with Pillow:
 masthead, a full-width UTC timeline ruler, four lead
 stories (the S&P 500 card is a dark-navy anchor), twelve medium cards,
-a world map with 16 numbered dots and 30 small brief dots (no leader
-lines, no anchor dots), thirty briefs with real flags,
+a world map with 16 numbered dots and a 7-region colour legend (no
+leader lines, no anchor dots, no brief dots), twenty-three briefs with real flags,
 a Date Check strip, one Markets/Sport bar, and a
 footer. No network at runtime: the brief and card flags are real
 flag images (flagcdn.com) stored locally under assets/flags/ and
@@ -481,7 +481,7 @@ def draw_masthead(draw):
     # without a separate key — the region colours live in the
     # kickers, the map dots and the briefs group headers). The
     # kicker line is back to just the two texts: "THE DAY IN WORLD
-    # NEWS" left, "40 STORIES · 8 REGIONS · ALL FROM THIS FRIDAY"
+    # NEWS" left, "39 STORIES · 7 REGIONS · ALL FROM THIS FRIDAY"
     # right. Title at y=8, 64px: its caps start ~y=18 (the kicker's
     # ink ends ~y=17, so ~1px clear — the same tightness the 68px
     # title had at y=7). The 'y' descender now ends ~y=87 (was
@@ -489,7 +489,7 @@ def draw_masthead(draw):
     # and leads below.
     draw.text((12, 6), "THE DAY IN WORLD NEWS", font=inter(12, 800),
               fill=RED, anchor="la")
-    draw.text((1012, 6), "40 STORIES · 8 REGIONS · ALL FROM THIS FRIDAY",
+    draw.text((1012, 6), "39 STORIES · 7 REGIONS · ALL FROM THIS FRIDAY",
               font=inter(10.5, 700), fill=DEK, anchor="ra")
     size = 64
     while size >= 64:
@@ -510,7 +510,9 @@ def draw_timeline(draw):
     # "THE DAY / IN UTC" label 11px (was 12px). Same 5 events, same
     # times/labels/anchors/regions, same stem-and-rule connectors
     # (colour-coded by region), same 25 hourly ticks (numbers only
-    # on 00/06/12/18/24). Geometry (band caps ~91 .. descenders
+    # on 06/12/18/24 — the "00:00" label is DROPPED, round 5
+    # 2026-11-21: it crowded the first event dot at x=107; its tick
+    # mark stays). Geometry (band caps ~91 .. descenders
     # ~144, leads start at y=147):
     #   above-event labels, baseline 99 (caps ~91, ~4px clear of
     #     the title descender at ~87); connector rule y=103..105;
@@ -530,10 +532,13 @@ def draw_timeline(draw):
     for hour in range(25):
         x = 88 + hour * 38.5
         if hour % 6 == 0:
-            # Axis NUMBER labels only on 00/06/12/18/24 (2026-11-21):
-            # the 03/09/15/21 labels collided with event labels.
+            # Axis NUMBER labels only on 06/12/18/24 (2026-11-21):
+            # the 03/09/15/21 labels collided with event labels, and
+            # the 00:00 label crowded the first event dot (round 5).
             # Tick marks stay hourly (long tick every 3h, short else).
             draw.rectangle([x - 1, 116, x + 1, 121], fill=INK)
+            if hour == 0:
+                continue
             label = "%02d:00" % hour
             cx = min(max(x, 88 + hour_font.getlength(label) / 2),
                      1012 - hour_font.getlength(label) / 2)
@@ -631,6 +636,50 @@ def lead_art_akvan(draw, x, y0):
     # Label on the land strip.
     draw.text((x + 200, y0 + 68), "ODISHA", font=inter(10, 800),
               fill=(255, 255, 255), anchor="ls")
+
+def lead_art_poland(draw, x, y0):
+    """Poland as LEAD 1 (2026-11-21, round 5): the old card art
+    scaled up to the 244x72 lead band — a BIG cream Poland map on a
+    blue field, a thick red EASTERN BORDER, and TWO red missile
+    trails from the east edge ending in layered impact bursts.
+    Same visual language as the card, bigger: map ~1.5x, bursts
+    r=16/14, one POLAND label on the land."""
+    draw.rectangle([x, y0, x + 244, y0 + 72], fill=(190, 210, 232))
+    # Poland map, scaled ~1.5x from the card art.
+    land = [(x + 8, y0 + 28), (x + 38, y0 + 13), (x + 94, y0 + 8),
+            (x + 148, y0 + 13), (x + 200, y0 + 16), (x + 227, y0 + 23),
+            (x + 235, y0 + 37), (x + 223, y0 + 49), (x + 200, y0 + 61),
+            (x + 148, y0 + 62), (x + 94, y0 + 62), (x + 44, y0 + 59),
+            (x + 14, y0 + 47), (x + 8, y0 + 37)]
+    draw.polygon(land, fill=(240, 232, 205), outline=(90, 85, 75))
+    draw.line(land + [land[0]], fill=(90, 85, 75), width=2,
+              joint="curve")
+    # Thick red eastern border, just inside the map's east edge.
+    draw.line([(x + 214, y0 + 17), (x + 226, y0 + 23),
+               (x + 233, y0 + 35), (x + 226, y0 + 47),
+               (x + 209, y0 + 56)], fill=RED, width=4, joint="curve")
+    # Two missile trails from the east edge to their impact points.
+    for (x1, y1, x2, y2) in [(244, 6, 194, 26), (244, 60, 202, 49)]:
+        draw.line([(x + x1, y0 + y1), (x + x2, y0 + y2)], fill=RED,
+                  width=4)
+        draw.line([(x + x1, y0 + y1), (x + x2, y0 + y2)],
+                  fill=(255, 120, 90), width=2)
+    # Layered impact bursts with radiating ticks and a white core.
+    for bx, by, r in [(194, 26, 16), (202, 49, 14)]:
+        for ang in range(0, 360, 30):
+            a = math.radians(ang)
+            draw.line([x + bx + (r + 2) * math.cos(a),
+                       y0 + by + (r + 2) * math.sin(a),
+                       x + bx + (r + 5) * math.cos(a),
+                       y0 + by + (r + 5) * math.sin(a)],
+                      fill=(255, 150, 40), width=2)
+        star(draw, x + bx, y0 + by, r, r // 3 + 1, (255, 190, 40))
+        star(draw, x + bx, y0 + by, r * 2 // 3, 2, (255, 120, 40))
+        star(draw, x + bx, y0 + by, r // 2, 2, RED)
+        draw.ellipse([x + bx - 3, y0 + by - 3, x + bx + 3, y0 + by + 3],
+                     fill=(255, 255, 255))
+    draw.text((x + 14, y0 + 58), "POLAND", font=inter(11, 800),
+              fill=INK, anchor="ls")
 
 def lead_art_2(draw, x, y0):
     """Kyiv bridge attack — REBUILT BRIGHT: a pale dawn sky over a
@@ -737,16 +786,17 @@ def lead_art_4(draw, x, y0):
     draw.text((x + 196, y0 + 63), "OVERTIME", font=inter(9, 800),
               fill=RED, anchor="ma")
 
-# LEAD ART (2026-11-21, lead reorder): keyed by the NEW lead ids —
-# 1 Kyiv (lead_art_2, the bridge), 2 Akvan (lead_art_akvan, the
-# cyclone), 4 COP31 (lead_art_4, the globe/clock). Lead 3 (S&P) is
-# drawn inline in draw_lead. The old lead_art_1 (Poland map) is
-# gone — Poland is now card 14, drawn by card_art_poland.
-LEAD_ART = {1: lead_art_2, 2: lead_art_akvan, 4: lead_art_4}
+# LEAD ART (2026-11-21, round 5): keyed by the NEW lead ids —
+# 1 Poland (lead_art_poland, the map + missile bursts), 2 Kyiv
+# (lead_art_2, the bridge), 3 Akvan (lead_art_akvan, the cyclone).
+# Lead 4 (S&P) is drawn inline in draw_lead. lead_art_4 (COP31
+# globe/clock) is no longer a lead — its simplified form is the
+# new card_art_5.
+LEAD_ART = {1: lead_art_poland, 2: lead_art_2, 3: lead_art_akvan}
 
 
 def draw_lead(draw, img, lead, x, y0):
-    """One lead card; lead 3 is the market-fall anchor — BRIGHT
+    """One lead card; lead 4 is the market-fall anchor — BRIGHT
     (rebuild: pale green band, dark-red "-3.7%", bright red
     falling chart; the old navy band is gone).
     LAYOUT (2026-11-21, reference rebuild): the card is 233px
@@ -756,7 +806,7 @@ def draw_lead(draw, img, lead, x, y0):
     badge + source)."""
     w = 244
     region = S.REGION_COLOURS[lead["region"]]
-    if lead["id"] == 3:
+    if lead["id"] == 4:
         # DESIGN (bright rebuild 2026-11-21): the top illustration
         # band (y0..y0+72) is a PALE green tint, not navy — the
         # rest of the card is the standard white panel, so the
@@ -836,11 +886,48 @@ def draw_lead(draw, img, lead, x, y0):
 # ILLUSTRATION ROUND (2026-11-21): every card redrawn around ONE
 # big focal idea that reads at a glance — a hero number, a hero
 # stamp, a giant spike, a broken line — flat graphic shapes in
-# the paper palette only. Card 11's in-art label changes
+# the paper palette only. Card 12's in-art label changes
 # "1 IN 12" -> "61 PATIENTS": the trial size straight from the
 # dek; "1 IN 12" appears in no source for this story.
 
 def card_art_5(draw, x, y0):
+    """COP31 into overtime, fossil fuels dropped — simplified from
+    lead_art_4 for the 160x42 card band: a BIG globe (focal, left),
+    a black oil drop crossed by a thick red X (middle, fossil fuels
+    dropped), and a red-rimmed clock with hands past midnight
+    (right, overtime). No text — the headline carries 'overtime'."""
+    draw.rectangle([x, y0, x + 160, y0 + 42], fill=(242, 236, 220))
+    # Globe, left — 44px, thick dark outline, bold continents.
+    draw.ellipse([x + 4, y0 + 0, x + 48, y0 + 42], fill=(56, 128, 180),
+                 outline=INK, width=2)
+    draw.ellipse([x + 11, y0 + 7, x + 24, y0 + 18], fill=(84, 168, 92))
+    draw.ellipse([x + 22, y0 + 17, x + 34, y0 + 29], fill=(84, 168, 92))
+    draw.ellipse([x + 30, y0 + 28, x + 40, y0 + 37], fill=(84, 168, 92))
+    draw.ellipse([x + 31, y0 + 6, x + 39, y0 + 13], fill=(84, 168, 92))
+    # Oil drop + thick red X, middle.
+    draw.polygon([(x + 76, y0 + 12), (x + 86, y0 + 26),
+                  (x + 66, y0 + 26)], fill=INK)
+    draw.ellipse([x + 66, y0 + 24, x + 86, y0 + 38], fill=INK)
+    draw.ellipse([x + 70, y0 + 27, x + 74, y0 + 31],
+                 fill=(255, 255, 255))
+    draw.line([x + 64, y0 + 10, x + 88, y0 + 40], fill=RED, width=3)
+    draw.line([x + 88, y0 + 10, x + 64, y0 + 40], fill=RED, width=3)
+    # Overtime clock, right — red rim, hands past 12.
+    draw.ellipse([x + 106, y0 + 0, x + 152, y0 + 42],
+                 fill=(255, 255, 255), outline=RED, width=3)
+    for i in range(12):
+        a = math.radians(i * 30 - 90)
+        r1 = 17 if i % 3 == 0 else 19
+        draw.line([x + 129 + r1 * math.cos(a),
+                   y0 + 21 + r1 * math.sin(a),
+                   x + 129 + 21 * math.cos(a),
+                   y0 + 21 + 21 * math.sin(a)],
+                  fill=INK, width=2)
+    draw.line([x + 129, y0 + 21, x + 131, y0 + 9], fill=INK, width=2)
+    draw.line([x + 129, y0 + 21, x + 141, y0 + 11], fill=RED, width=2)
+    draw.ellipse([x + 127, y0 + 19, x + 131, y0 + 23], fill=RED)
+
+def card_art_6(draw, x, y0):
     """UK-EU — BEFORE: 32x20 flags, a 4px teal link, a modest red
     "3" seal (r=13) and a small "DEALS" label. AFTER: BIGGER flags
     (40x20, filling the full band height), a THICKER 6px teal
@@ -878,7 +965,7 @@ def card_art_5(draw, x, y0):
     draw.text((x + 80, y0 + 31), "3 DEALS", font=inter(9, 800),
               fill=INK, anchor="ma")
 
-def card_art_6(draw, x, y0):
+def card_art_7(draw, x, y0):
     """UN chief race — stalled after the ninth vote. A BIG white
     ballot box (focal, ~60% of the band) on a PALE UN-blue field,
     a huge navy "9" on its front, a ballot slip sticking out of
@@ -910,7 +997,7 @@ def card_art_6(draw, x, y0):
     draw.text((x + 127, y0 + 33), "VETO", font=inter(6, 800),
               fill=(255, 255, 255), anchor="mm")
 
-def card_art_7(draw, x, y0):
+def card_art_8(draw, x, y0):
     """Iran war, ninth month, no decision until 2027 — AFTER: one
     GIANT clock fills the left half of the band (r=21, face 42px
     tall in a 46px band), its hands set to 9 o'clock, with a HUGE
@@ -945,7 +1032,7 @@ def card_art_7(draw, x, y0):
     draw.text((x + 88, y0 + 34), "NO RUSH", font=inter(9, 800),
               fill=INK, anchor="lm")
 
-def card_art_8(draw, x, y0):
+def card_art_9(draw, x, y0):
     """Hodeidah port strike — REBUILT BRIGHT: a pale warm sky over
     a pale blue sea, a BIG cargo ship in deep navy filling the
     whole band (hull x+6..x+154, containers flanking a central
@@ -986,7 +1073,7 @@ def card_art_8(draw, x, y0):
     draw.rectangle([x + 131, y0 + 5, x + 141, y0 + 8], fill=(20, 20, 25))
     draw.line([x + 129, y0 + 3, x + 143, y0 + 10], fill=RED, width=2)
     draw.line([x + 143, y0 + 3, x + 129, y0 + 10], fill=RED, width=2)
-def card_art_9(draw, x, y0):
+def card_art_10(draw, x, y0):
     """Peru quake — HUGE bold red "6.7" (36px, ~78% of the band
     height) as the dominant focal on the left: the magnitude IS the
     story. One thick red seismograph trace on the right with a HUGE
@@ -1024,7 +1111,7 @@ def card_art_9(draw, x, y0):
     draw.text((x + 127, y0 + 7.5), "FRI 19:09 LOCAL",
               font=inter(7, 800), fill=(255, 255, 255), anchor="mm")
 
-def card_art_10(img, draw, x, y0):
+def card_art_11(img, draw, x, y0):
     """Palisades Fire — REBUILT BRIGHT: a pale warm smoke sky, a
     WALL of tall layered flames in deep red-orange / orange /
     gold filling the whole band, and one LARGE white-backed
@@ -1077,7 +1164,7 @@ def card_art_10(img, draw, x, y0):
     # centre, over the flames.
     stamp(img, x + 80, y0 + 21, "GUILTY", inter(15, 800), RED, -8,
           fill=(255, 255, 255))
-def card_art_11(img, draw, x, y0):
+def card_art_12(img, draw, x, y0):
     """Pill vs pancreatic cancer — REBUILT (2026-11-21, user order):
     a CHUNKIER capsule (120x30, taller than before) with real
     pill depth: a soft drop shadow under it, a glossy white
@@ -1125,7 +1212,7 @@ def card_art_11(img, draw, x, y0):
     draw.line([x + 140, y0 + 26, x + 150, y0 + 16],
               fill=(255, 255, 255), width=3)
 
-def card_art_12(img, draw, x, y0):
+def card_art_13(draw, x, y0):
     """Merged Nvidia + AI-tax — Nvidia's chip driven down 14%, with a
     tax (%) on AI. Light background (238,240,236) so the green chip
     and red elements pop. Left: a Nvidia-green NVDA chip (66px wide,
@@ -1162,77 +1249,36 @@ def card_art_12(img, draw, x, y0):
                  fill=(255, 255, 255), outline=RED, width=2)
     draw.text((x + 139, y0 + 21), "%", font=inter(16, 800), fill=RED,
               anchor="mm")
-def card_art_13(draw, x, y0):
-    """Phillips hits 118 vs India; first NZ century in all three
-    formats — a cricket scorecard. REBUILT BRIGHT: a pale green
-    field, one GIANT dark-green "118" (38px, ~83% of the band
-    height) as the dominant focal on the left, a thin dark-green
-    divider, and on the right "PHILLIPS" in bold dark green over
-    a small red cricket ball with white seams — the only
-    supporting cue. First glance: 118 runs by Phillips —
-    dark green on pale green, never white-on-dark."""
-    GREEN = (18, 77, 44)
-    draw.rectangle([x, y0, x + 160, y0 + 42], fill=(220, 235, 220))
-    # Giant score — the focal, left, vertically centred.
-    draw.text((x + 6, y0 + 21), "118", font=inter(38, 800),
-              fill=(15, 85, 48), anchor="lm")
-    # Thin dark-green divider between score and name.
-    draw.rectangle([x + 70, y0 + 5, x + 71, y0 + 37],
-                   fill=GREEN)
-    # Name, bold dark green, top right.
-    draw.text((x + 116, y0 + 13), "PHILLIPS", font=inter(12, 800),
-              fill=GREEN, anchor="mm")
-    # Small red cricket ball, bottom right, with white seams.
-    cx, cy, r = x + 116, y0 + 30, 10
-    draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=RED,
-                 outline=GREEN, width=1)
-    draw.arc([cx - r, cy - r, cx + r, cy + r], 115, 245,
-             fill=(255, 255, 255), width=1)
-    draw.arc([cx - r, cy - r, cx + r, cy + r], 295, 65,
-             fill=(255, 255, 255), width=1)
-def card_art_poland(draw, x, y0):
-    """Poland as a CARD (2026-11-21, lead reorder): the old lead
-    art scaled down to the 160x42 card band — a cream Poland map
-    on a blue field, a thick red EASTERN BORDER, and TWO red
-    missile trails from the east edge ending in layered impact
-    bursts. Same visual language as the lead, simplified for the
-    small band (one label, smaller bursts)."""
-    draw.rectangle([x, y0, x + 160, y0 + 42], fill=(190, 210, 232))
-    # Poland map, scaled from the lead art (~0.65 x, ~0.58 y).
-    land = [(x + 5, y0 + 16), (x + 25, y0 + 6), (x + 62, y0 + 3),
-            (x + 98, y0 + 6), (x + 133, y0 + 8), (x + 151, y0 + 13),
-            (x + 156, y0 + 22), (x + 148, y0 + 30), (x + 133, y0 + 38),
-            (x + 98, y0 + 39), (x + 62, y0 + 39), (x + 29, y0 + 37),
-            (x + 9, y0 + 29), (x + 5, y0 + 22)]
-    draw.polygon(land, fill=(240, 232, 205), outline=(90, 85, 75))
-    draw.line(land + [land[0]], fill=(90, 85, 75), width=2,
-              joint="curve")
-    # Thick red eastern border, just inside the map's east edge.
-    draw.line([(x + 142, y0 + 9), (x + 150, y0 + 13),
-               (x + 155, y0 + 21), (x + 150, y0 + 29),
-               (x + 139, y0 + 35)], fill=RED, width=3, joint="curve")
-    # Two missile trails from the east edge to their impact points.
-    for (x1, y1, x2, y2) in [(160, 4, 129, 15), (160, 35, 134, 30)]:
-        draw.line([(x + x1, y0 + y1), (x + x2, y0 + y2)], fill=RED,
-                  width=3)
-        draw.line([(x + x1, y0 + y1), (x + x2, y0 + y2)],
-                  fill=(255, 120, 90), width=1)
-    # Layered impact bursts with radiating ticks and a white core.
-    for bx, by, r in [(129, 15, 11), (134, 30, 9)]:
-        for ang in range(0, 360, 30):
-            a = math.radians(ang)
-            draw.line([x + bx + (r + 2) * math.cos(a),
-                       y0 + by + (r + 2) * math.sin(a),
-                       x + bx + (r + 5) * math.cos(a),
-                       y0 + by + (r + 5) * math.sin(a)],
-                      fill=(255, 150, 40), width=1)
-        star(draw, x + bx, y0 + by, r, r // 3 + 1, (255, 190, 40))
-        star(draw, x + bx, y0 + by, r * 2 // 3, 2, (255, 120, 40))
-        star(draw, x + bx, y0 + by, r // 2, 2, RED)
-        draw.ellipse([x + bx - 2, y0 + by - 2, x + bx + 2, y0 + by + 2],
-                     fill=(255, 255, 255))
-    draw.text((x + 10, y0 + 34), "POLAND", font=inter(8, 800),
-              fill=INK, anchor="ls")
+def card_art_14(draw, x, y0):
+    """Iraq enters Jurf al-Nasr — a tan Iraq map (focal) on a pale
+    desert field, a BIG red star marking Jurf al-Nasr south of
+    Baghdad, a small Iraqi tricolour flag at right, and a dark
+    checkpoint barrier under it — the entry. Flat, bold, readable
+    at a glance. No text in the art."""
+    draw.rectangle([x, y0, x + 160, y0 + 42], fill=(238, 228, 200))
+    # Simplified Iraq outline, left-centre.
+    iraq = [(x + 8, y0 + 10), (x + 48, y0 + 4), (x + 88, y0 + 8),
+            (x + 100, y0 + 16), (x + 92, y0 + 28), (x + 70, y0 + 38),
+            (x + 38, y0 + 38), (x + 14, y0 + 30), (x + 8, y0 + 20)]
+    draw.polygon(iraq, fill=(205, 175, 120), outline=INK)
+    draw.line(iraq + [iraq[0]], fill=INK, width=2, joint="curve")
+    # Red star at Jurf al-Nasr (central Iraq, south of Baghdad).
+    star(draw, x + 58, y0 + 26, 10, 4, RED)
+    draw.ellipse([x + 56, y0 + 24, x + 60, y0 + 28],
+                 fill=(255, 255, 255))
+    # Iraqi tricolour (red-white-black) at right, thin outline.
+    draw.rectangle([x + 118, y0 + 10, x + 152, y0 + 16],
+                   fill=(206, 17, 38))
+    draw.rectangle([x + 118, y0 + 16, x + 152, y0 + 22],
+                   fill=(255, 255, 255))
+    draw.rectangle([x + 118, y0 + 22, x + 152, y0 + 28],
+                   fill=(0, 0, 0))
+    draw.rectangle([x + 118, y0 + 10, x + 152, y0 + 28],
+                   outline=(90, 85, 75))
+    # Dark checkpoint barrier under the flag — the entry.
+    draw.line([x + 112, y0 + 34, x + 156, y0 + 34], fill=INK, width=3)
+    for bx in (116, 128, 140, 152):
+        draw.line([x + bx, y0 + 34, x + bx, y0 + 40], fill=INK, width=2)
 def card_art_15(draw, x, y0):
     """Gaza — truce line breaking. AFTER: a HUGE red "6" (six killed)
     on a white tile dominates the left two-thirds of the band, with
@@ -1314,7 +1360,7 @@ def card_art_16(draw, x, y0):
 
 CARD_ART = {
     5: card_art_5, 6: card_art_6, 7: card_art_7, 8: card_art_8,
-    9: card_art_9, 13: card_art_13, 14: card_art_poland,
+    9: card_art_9, 10: card_art_10, 13: card_art_13, 14: card_art_14,
     15: card_art_15, 16: card_art_16,
 }
 
@@ -1332,8 +1378,6 @@ def draw_card(img, draw, card, x, y0):
     art = CARD_ART.get(card["id"])
     if art is not None:
         art(draw, x, y0)
-    elif card["id"] == 10:
-        card_art_10(img, draw, x, y0)
     elif card["id"] == 11:
         card_art_11(img, draw, x, y0)
     elif card["id"] == 12:
@@ -1389,35 +1433,36 @@ WORLD = json.load(open(HERE / "data" / "world.json"))
 # was 70..-46 — the high Arctic and deep Antarctic are empty sea,
 # and the crop saves ~9px of height; every dot is inside it: the
 # northernmost dot is Tallinn at 59.44N, the southernmost is
-# Wellington at -41.3). X scale 0.862 px/deg, Y scale 0.95 px/deg —
-# the map is 250x101px (was 196x110), aspect 2.48, nearly true
-# equirectangular (2.5) — and the wider panel gives the Europe
+# Wellington at -41.3). X scale 0.862 px/deg, Y scale 0.85 px/deg —
+# the map is 250x90px — and the wider panel gives the Europe
 # cluster more horizontal room. The panel is 250px wide (the full
-# left column) and 108px tall; the map is centred in it with
-# ~3.7px sea margins top/bottom.
-# (Round 5, 2026-11-21: panel grew 154 -> 172px tall so the block
-# reaches down toward the Date Check; the map stays centred, sea
-# margins 24.9px top/bottom, dots shift down ~9px with it.)
-# (Reference rebuild, 2026-11-21: the panel is now 250x108 in the
-# 3-column bottom section, and the caption is DROPPED — the
+# left column) and 96px tall; the map is centred in it with
+# ~2.9px sea margins top/bottom.
+# (Round 5, 2026-11-21: the tile shrank 108 -> 96px (Y scale 0.95
+# -> 0.85, now nearly true equirectangular) to make room for the
+# 2-row region legend UNDER the map (824..846); the Date Check box
+# drops to 848..998 and its pitch tightens 12.5 -> 12px.)
+# (Reference rebuild, 2026-11-21: the caption is DROPPED — the
 # reference has no caption, and the numbered dots match the story
-# numbers. The Date Check box sits directly below the map.)
+# numbers. The region legend sits below the map, then the Date
+# Check box.)
 MAP_LON0, MAP_LON1 = -135.0, 155.0
 MAP_LAT_TOP, MAP_LAT_BOT = 62.0, -44.0
-MAP_TILE_W, MAP_TILE_H = 250, 108
+MAP_TILE_W, MAP_TILE_H = 250, 96
 # MAP_OY = the tile's top edge in page coords. The bottom section
-# (reference layout) starts at y=726: the map tile is 250x108 at
-# (12, 726) and the Date Check box sits below it (840..998).
-# MAP_TOP centres the 100.7px of geography inside the 108px tile.
+# (reference layout) starts at y=726: the map tile is 250x96 at
+# (12, 726), the region legend sits below it (824..846), and the
+# Date Check box below that (848..998).
+# MAP_TOP centres the 90.1px of geography inside the 96px tile.
 MAP_OY = 726
 # Dot-layout clamp box (7px inset from the tile edges): the dots'
-# anchors span x 12..262 / y 732..828, so this box barely moves
+# anchors span x 12..262 / y 731..817, so this box barely moves
 # them — unlike the old [19, 201] x [762, 900] clamps, which were
 # left over from the 196px tile and shoved every dot off its place.
 MAP_DOT_XMIN, MAP_DOT_XMAX = 19, 255
-MAP_DOT_YMIN, MAP_DOT_YMAX = 733, 827
+MAP_DOT_YMIN, MAP_DOT_YMAX = 733, 815
 MAP_XSCALE = MAP_TILE_W / (MAP_LON1 - MAP_LON0)
-MAP_YSCALE = 0.95
+MAP_YSCALE = 0.85
 MAP_TOP = MAP_OY + (MAP_TILE_H - (MAP_LAT_TOP - MAP_LAT_BOT)
                     * MAP_YSCALE) / 2
 # Numbered dots: 11px white halo / 10px coloured disc / 7px number
@@ -1556,10 +1601,10 @@ def _layout_dots(anchors, radii, fixed=(), iters=4000, spring=0.03):
     dots rather than parking a dot offshore — but the repulsion
     itself is full strength on both dots, so a sea dot is never
     left inside a violation by a weakened push. Two dots on the
-    same anchor (3 and 6, both New York; 31 and 33; 34, 38 and 39,
-    all Washington DC) split along _split_dir. Clamped inside the
-    panel (MAP_DOT_XMIN..MAP_DOT_XMAX, MAP_DOT_YMIN..MAP_DOT_YMAX —
-    7px inset from the 250x108 tile at (12, 726); in practice the
+    same anchor (4 and 7, both New York) split along _split_dir.
+    Clamped inside the panel (MAP_DOT_XMIN..MAP_DOT_XMAX,
+    MAP_DOT_YMIN..MAP_DOT_YMAX —
+    7px inset from the 250x96 tile at (12, 726); in practice the
     dots sit near their anchors, so the caps rarely bind)."""
     n = len(anchors)
     fixed = set(fixed)
@@ -1909,19 +1954,17 @@ def _clear_digits(centres, brief_centres):
 
 def draw_map(img, draw):
     # MAP, FIXED + RESIZED (2026-11-21, reference layout): the tile
-    # is now 250x108 at (12, 726) — the full left column, matching
-    # the projection constants (MAP_TILE_W=250, MAP_OY=726) that the
-    # previous rebuild set but never wired up (the old code still
-    # pasted a 196x169 tile at (12, 740) with the old clamps, so
-    # East Asia was clipped off and every dot was shoved off its
-    # anchor). The geography (100.7px) is centred in the 108px
-    # tile with ~3.7px sea margins; the dots' anchors span
-    # y 732..828, inside the tile. The CAPTION IS DROPPED — the
-    # reference has none, and the Date Check box sits directly
-    # below the map (840..998); the numbered dots match the story
-    # numbers, so no legend is needed.
+    # is now 250x96 at (12, 726) — the full left column, matching
+    # the projection constants (MAP_TILE_W=250, MAP_OY=726). The
+    # geography (90.1px) is centred in the 96px tile with ~2.9px
+    # sea margins; the dots' anchors span y 731..817, inside the
+    # tile. The CAPTION IS DROPPED — the reference has none. The
+    # region legend sits below the map (824..846) and the Date
+    # Check box below that (848..998); the numbered dots match the
+    # story numbers. ROUND 5: the brief dots are REMOVED — only
+    # the 16 numbered dots remain.
     ox, oy = 12, 726
-    tile = Image.new("RGB", (250 * SS, 108 * SS), (222, 232, 240))
+    tile = Image.new("RGB", (250 * SS, 96 * SS), (222, 232, 240))
     td = SSDraw(ImageDraw.Draw(tile), tile)
 
     def T(lon, lat):
@@ -1953,49 +1996,10 @@ def draw_map(img, draw):
     centres = _escape_caged_dots(centres, anchors, n_radii)
     centres = _rescue_sea_dots(centres, anchors, n_radii)
     centres = _project_dots(centres, n_radii)
-    # Brief dots: small unnumbered discs in their region colour, laid
-    # out against the FIXED numbered dots — the brief dot does the
-    # moving, never the numbered one.
-    b_anchors = [_map_xy(lon, lat) for _, _, lon, lat in S.BRIEF_ANCHORS]
-    all_anchors = anchors + b_anchors
-    all_radii = n_radii + [BRIEF_DOT_R] * len(b_anchors)
-    # Start the numbered dots at their phase-1 centres (they are
-    # fixed here, so starting them on their anchors would leave
-    # coincident pairs — 3 and 6, both New York — on top of each
-    # other); the brief dots start on their anchors.
-    all_pos = _layout_dots(centres + b_anchors, all_radii,
-                           fixed=set(range(len(anchors))))
-    all_pos = _project_dots(all_pos, all_radii,
-                            fixed=set(range(len(anchors))))
-    all_pos = _escape_caged_dots(all_pos, all_anchors, all_radii,
-                                 fixed=set(range(len(anchors))))
-    all_pos = _rescue_sea_dots(all_pos, all_anchors, all_radii,
-                               fixed=set(range(len(anchors))))
-    all_pos = _project_dots(all_pos, all_radii,
-                            fixed=set(range(len(anchors))))
-    all_pos = _escape_caged_dots(all_pos, all_anchors, all_radii,
-                                 fixed=set(range(len(anchors))))
-    brief_centres = all_pos[len(anchors):]
-    # Digit clearance: nudge brief dots off the numbered digits
-    # (ink-accurate, numbered dots fixed). See _clear_digits.
-    brief_centres = _clear_digits(centres, brief_centres)
-    # PAINT ORDER (numbered dots on top): the brief dots are drawn
-    # FIRST and the numbered dots SECOND, so a numbered disc and
-    # its white digit always paint over any brief dot beneath them
-    # — a brief dot can never cover or obscure a digit, and the
-    # numbered disc's own coloured ring (>= 1px between digit ink
-    # and disc edge) always separates digit ink from any visible
-    # brief pixel. Reversing this order would let brief dots sit
-    # on top of the digits.
-    for (sid, region, _, _), (cx, cy) in zip(S.BRIEF_ANCHORS,
-                                            brief_centres):
-        lx, ly = cx - ox, cy - oy
-        td.ellipse([lx - BRIEF_DOT_OUTER, ly - BRIEF_DOT_OUTER,
-                    lx + BRIEF_DOT_OUTER, ly + BRIEF_DOT_OUTER],
-                   fill=(255, 255, 255))
-        td.ellipse([lx - BRIEF_DOT_R, ly - BRIEF_DOT_R,
-                    lx + BRIEF_DOT_R, ly + BRIEF_DOT_R],
-                   fill=S.REGION_COLOURS[region])
+    # ROUND 5 (2026-11-21): the brief dots are REMOVED (review item
+    # 9) — only the 16 numbered dots remain. The brief-dot layout,
+    # digit clearance and painting are deleted; _clear_digits and
+    # the _digit_ink helpers below are now unused.
     for (sid, region, _, _), (cx, cy) in zip(S.MAP_ANCHORS, centres):
         lx, ly = cx - ox, cy - oy
         td.ellipse([lx - MAP_DOT_OUTER, ly - MAP_DOT_OUTER,
@@ -2148,12 +2152,12 @@ def draw_sport_icon(draw, x, y):
 
 
 def draw_briefs(draw):
-    # LAYOUT, REFERENCE REBUILD (2026-11-21): the 24 briefs are now
+    # LAYOUT, REFERENCE REBUILD (2026-11-21): the 23 briefs are now
     # TWO region-grouped columns (not 3 plain columns), with a
     # header + count per column, like the reference's bottom
     # section. Middle column (x 274..638): Americas + Africa +
-    # Middle East = 13 briefs (N. America 3, Latin America 2,
-    # Africa 4, Middle East 4). Right column (x 650..1012):
+    # Middle East = 12 briefs (N. America 3, Latin America 2,
+    # Africa 4, Middle East 3). Right column (x 650..1012):
     # Europe + Asia + Global = 11 briefs (Europe 4, Asia 6,
     # Global 1). Headers carry the region list (left) and the
     # count (right-aligned). Briefs keep their flag, bold head and
@@ -2279,7 +2283,7 @@ def _date_check_segments():
     facts live verbatim in exactly one place (stories.py) and this
     function only re-slices them: (label, pill fill, tint fill,
     [(event, date), ...]). TWO categories only (2026-11-21, user
-    order): LEFT OUT 8 items and NOT YET 3 items (expanded
+    order): LEFT OUT 7 items and NOT YET 3 items (expanded
     2026-11-21 — the 5 added items are verified real; see
     stories.py). EDGE is DELETED (it named "Sat 21 Nov" for the
     Peru quake, contradicting the paper's Friday date; the card now
@@ -2306,9 +2310,9 @@ def _date_check_segments():
 
 def _region_counts():
     """Story counts per region, computed from the data (4 leads +
-    12 cards + 24 briefs = 40 stories), not hard-coded: Europe 8,
+    12 cards + 23 briefs = 39 stories), not hard-coded: Europe 8,
     Middle East 7, North America 6, Latin America 3, Asia 7,
-    Africa 4, Global 4, Oceania 1."""
+    Africa 4, Global 4."""
     counts = {}
     for L in S.LEADS:
         counts[L["region"]] = counts.get(L["region"], 0) + 1
@@ -2329,16 +2333,17 @@ def _region_key_width(show_label=True):
     counts = _region_counts()
     w = lab.getlength("REGIONS") + 8 if show_label else 0
     for region in ("Europe", "Middle East", "North America",
-                   "Latin America", "Asia", "Africa", "Global",
-                   "Oceania"):
+                   "Latin America", "Asia", "Africa", "Global"):
         w += (10 + name_f.getlength(region) + 2
               + num_f.getlength(str(counts[region])) + 12)
     return w - 12
 
 
-def _region_key(draw, x, base, show_label=True):
+def _region_key(draw, x, base, regions=("Europe", "Middle East",
+                "North America", "Latin America", "Asia", "Africa",
+                "Global"), show_label=True):
     """Region colour key: a coloured dot + region name + story
-    count for each of the 8 regions at 9px, with an optional muted
+    count for each of the 7 regions at 9px, with an optional muted
     "REGIONS" label first. The dot (7px) is centred on the text's
     cap height. Drawn on the line at baseline `base`; returns the
     x where the key ends. (2026-11-21: moved OUT of the Date Check
@@ -2351,9 +2356,7 @@ def _region_key(draw, x, base, show_label=True):
     if show_label:
         draw.text((x, base), "REGIONS", font=lab, fill=DEK, anchor="ls")
         x += lab.getlength("REGIONS") + 8
-    for region in ("Europe", "Middle East", "North America",
-                   "Latin America", "Asia", "Africa", "Global",
-                   "Oceania"):
+    for region in regions:
         draw.ellipse([x, base - 6.5, x + 7, base + 0.5],
                      fill=S.REGION_COLOURS[region])
         x += 10
@@ -2365,54 +2368,74 @@ def _region_key(draw, x, base, show_label=True):
     return x - 12
 
 
+def _map_legend(draw):
+    """Region colour legend UNDER the map (round 5, 2026-11-21,
+    review item 8): the 7 region names as dot + name + story count,
+    same style as _region_key (9px), in TWO rows balanced by width
+    (row 1: Europe, Middle East, Asia, Africa — 234.1px; row 2:
+    North America, Latin America, Global — 230.3px) so both fit the
+    250px left column. Baselines 831 / 842: row 1 caps ~824.5
+    (2.5px below the map tile, which ends at 822), row 2
+    descenders ~844.5 (3.5px above the Date Check box, which
+    starts at 848). Left-aligned at x=12, like the map."""
+    _region_key(draw, 12, 831,
+                ("Europe", "Middle East", "Asia", "Africa"),
+                show_label=False)
+    _region_key(draw, 12, 842,
+                ("North America", "Latin America", "Global"),
+                show_label=False)
+
+
 def draw_date_check_box(draw):
     # DATE CHECK BOX (2026-11-21, reference layout, user order):
     # the full-width strip is gone. The Date Check is now a
     # compact bordered box UNDER THE MAP in the left column
-    # (x 12..262, y 840..998), exactly like the reference's box
+    # (x 12..262, y 848..998), exactly like the reference's box
     # under its map. Same facts/dates, new format: a red header
     # line, then the items as a TWO-COLUMN LIST — event left,
     # date right-aligned — and a "Not yet:" line introducing the
     # 3 NOT YET items. Our graphic style (our red, our fonts,
     # our pale tint fill), the reference's space logic.
-    #   * BOX: 12..262 x 840..998, fill (253, 243, 238), red
+    #   * BOX: 12..262 x 848..998, fill (253, 243, 238), red
     #     1.5px outline. Inner text x 18..256 (6px padding).
-    #   * HEADER (10.5px bold RED, baseline 852): "DATE CHECK ·
+    #   * HEADER (10.5px bold RED, baseline 860): "DATE CHECK ·
     #     LEFT OUT AS OLDER NEWS" (215.8px, fits the 238px inner
     #     width).
-    #   * 7 LEFT OUT rows, 10.5px, 12.5px pitch (baselines
-    #     864..939, reflowed 2026-11-21 after the Kenya row was
-    #     deleted): event regular INK, date bold RED,
-    #     right-aligned at x=256. Longest row 230.7px
-    #     (BepiColombo is a NOT YET row) — LEFT OUT max 206.4px.
-    #   * "Not yet:" subhead (10.5px bold NAVY, baseline 951.5),
-    #     then 3 NOT YET rows (baselines 964/976.5/989):
+    #   * 7 LEFT OUT rows, 10.5px, 12px pitch (baselines
+    #     872..944, reflowed 2026-11-21 round 5 after the box
+    #     dropped to make room for the legend): event regular
+    #     INK, date bold RED, right-aligned at x=256. Longest row
+    #     230.7px (BepiColombo is a NOT YET row) — LEFT OUT max
+    #     206.4px.
+    #   * "Not yet:" subhead (10.5px bold NAVY, baseline 956),
+    #     then 3 NOT YET rows (baselines 968/980/992):
     #     event regular INK, date bold NAVY, right-aligned.
     #     Longest NOT YET row 230.7px (BepiColombo) — fits the
     #     238px inner width with 7.3px spare. 10.5px (not 11px):
     #     at 11px BepiColombo is 241.7px and would collide with
     #     the right-aligned date.
-    #   * Last row descenders ~993, 5px clear of the box bottom
-    #     (998); header caps ~844.6, 4.6px clear of the box top.
-    draw.rectangle([12, 840, 262, 998], fill=(253, 243, 238),
+    #   * Last row descenders ~994.5, 3.5px clear of the box bottom
+    #     (998); header caps ~853.4, 5.4px clear of the box top.
+    draw.rectangle([12, 848, 262, 998], fill=(253, 243, 238),
                    outline=RED, width=1.5)
     dc_font = inter(10.5, 400)
     dc_bold = inter(10.5, 700)
-    draw.text((18, 852), "DATE CHECK · LEFT OUT AS OLDER NEWS",
+    draw.text((18, 860), "DATE CHECK · LEFT OUT AS OLDER NEWS",
               font=inter(10.5, 800), fill=RED, anchor="ls")
     segs = _date_check_segments()
     left_items = segs[0][3]
     yet_items = segs[1][3]
-    # REFLOW (2026-11-21, Kenya deleted — 7 LEFT OUT rows now):
-    # the rows are laid out from the item counts at 12.5px pitch,
-    # so the box fills evenly: 7 LEFT OUT rows (864..939),
-    # "Not yet:" (951.5), 3 NOT YET rows (964..989). Last row
-    # descenders ~992, 6px clear of the box bottom (998). Longest
-    # row 230.7px (BepiColombo) — fits the 238px inner width with
-    # 7.3px spare. 10.5px (not 11px): at 11px BepiColombo is
-    # 241.7px and would collide with the right-aligned date.
-    pitch = 12.5
-    base = 864
+    # REFLOW (2026-11-21, round 5 — the box drops 840 -> 848 to
+    # make room for the region legend above it): the rows are laid
+    # out from the item counts at 12px pitch, so the box fills
+    # evenly: 7 LEFT OUT rows (872..944), "Not yet:" (956), 3 NOT
+    # YET rows (968..992). Last row descenders ~994.5, 3.5px clear
+    # of the box bottom (998). Longest row 230.7px (BepiColombo) —
+    # fits the 238px inner width with 7.3px spare. 10.5px (not
+    # 11px): at 11px BepiColombo is 241.7px and would collide with
+    # the right-aligned date.
+    pitch = 12
+    base = 872
     for event, date in left_items:
         draw.text((18, base), event + ", ", font=dc_font, fill=INK,
                   anchor="ls")
@@ -2434,20 +2457,23 @@ def draw_date_check_box(draw):
 def draw_bottom_strip(draw):
     # BOTTOM SECTION, REFERENCE LAYOUT (2026-11-21): three
     # columns under the cards. The left column (x 12..262) is the
-    # map (drawn by draw_map, tile 726..834) + the Date Check box
-    # (840..998, draw_date_check_box above). The middle and right
+    # map (drawn by draw_map, tile 726..822) + the region legend
+    # (824..846, _map_legend) + the Date Check box (848..998,
+    # draw_date_check_box above). The middle and right
     # columns are the briefs (draw_briefs, headers at baseline
     # 722). The full-width Date Check strip (911..968) and the
     # Markets/Sport bar (970..998) are DELETED — Markets/Sport
     # now close the briefs columns as wrapped lines. Only the
     # "WHERE IT HAPPENED" header and the footer survive here.
     #   card row 2 ends 705; header caps ~713 (gap 8)
-    #   map tile 726..834; Date Check box 840..998 (gap 6)
+    #   map tile 726..822; legend 824..846; Date Check box
+    #   848..998 (gap 2)
     #   briefs rows 728..~996; footer rule 1001 (gap ~5)
     #   footer caps ~1007 (gap ~6); footer descenders ~1016,
     #   3px clear of the outer border (1019), 8px off the page edge.
     draw.text((12, 722), "WHERE IT HAPPENED", font=inter(12, 800),
               fill=RED, anchor="ls")
+    _map_legend(draw)
     draw_date_check_box(draw)
     # FOOTER: the legend line is no longer a bare centred line under
     # SPORT. A 2px divider rule in dark warm grey (64, 60, 50) sits
@@ -2458,14 +2484,15 @@ def draw_bottom_strip(draw):
     # the footer text — the 1px (90, 85, 75) bottom page border,
     # which stays as-is — so the footer is fenced off from the bar
     # above, not from the page edge below.
-    # FIT (2026-11-21): adding "Unmarked = confirmed." (+109.4px at
-    # 9.5px) to the old 995.0px line would overflow the 1000px content
-    # width, so the type is 10 -> 9.5px (the max allowed cut) and the
-    # tail is shortened: "and others" dropped from the sources list
-    # and the filler "here" dropped from the opening sentence. No
-    # legend item, source name, fact or date was dropped. Measured
-    # 981.1px at 9.5px, centred span 21.5..1002.5 — 9.5px clear of
-    # the 12..1012 content edges on both sides, still one line.
+    # FIT (2026-11-21, round 5): the footer now reads "Friday 20
+    # November 2026. CLAIMED = one side's account. REPORTED = as
+    # stated. Unmarked = confirmed. Times are UTC; local date
+    # counts; market figures are closing values. Sources: Reuters,
+    # AP, BBC, AFP, Al Jazeera." — measured 990.5px at 9.5px,
+    # centred span 16.75..1007.25 — 4.75px clear of the 12..1012
+    # content edges on both sides, still one line. The opening was
+    # shortened from "All stories from Friday 20 November 2026."
+    # to fit; no legend item, source name, fact or date was dropped.
     draw.line([12, 1001, 1012, 1001], fill=(64, 60, 50), width=2)
     draw.text((512, 1013.5), S.FOOTER_TEXT, font=inter(9.5, 400), fill=MUTED,
               anchor="ms")
@@ -2486,8 +2513,9 @@ def build():
     # (233px); cards row1 389..543, row2 551..705 (154px each,
     # 8px gaps); bottom headers baseline 722 (caps ~713, 8px
     # clear of the cards); bottom section 726..998 (map tile
-    # 726..834, Date Check box 840..998, briefs rows 730..~995);
-    # footer rule 1001, footer baseline 1013.5, border 1019.
+    # 726..822, legend 824..846, Date Check box 848..998, briefs
+    # rows 730..~995); footer rule 1001, footer baseline 1013.5,
+    # border 1019.
     for lead, x in zip(S.LEADS, (12, 264, 516, 768)):
         draw_lead(draw, img, lead, x, 148)
     row1 = S.CARDS[0:6]

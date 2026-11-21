@@ -1,13 +1,13 @@
 """Story data for the Friday 20 November 2026 front page.
 
 All display strings come from the design spec; the status, source and
-region of every story come from stories.json. Forty-six stories: ids 1-4
-are the leads, 5-16 the medium cards, and 30 briefs (ids 17-19, 21,
-23, 25-29, 31-44, 47-52). Badges on
-the 16 lead/card stories: 11 CONFIRMED, 4 REPORTED (7, 11, 12, 14),
-1 CLAIMED (15); brief 52 is also CLAIMED. Badges SHOWN (2026-11-21,
-user-confirmed): CONFIRMED only on the 4 leads (1-4) — the 7 CONFIRMED
-medium cards (5, 6, 8, 9, 10, 13, 16) show no badge, and an unmarked
+region of every story come from stories.json. Thirty-nine stories: ids 1-4
+are the leads, 5-16 the medium cards, and 23 briefs (ids 17-19, 21,
+23, 25-29, 31, 33, 35, 36, 38-43, 47, 50, 51). Badges on
+the 16 lead/card stories: 12 CONFIRMED, 3 REPORTED (8, 12, 13),
+1 CLAIMED (15). Badges SHOWN (2026-11-21,
+user-confirmed): CONFIRMED only on the 4 leads (1-4) — the 8 CONFIRMED
+medium cards (5, 6, 7, 9, 10, 11, 14, 16) show no badge, and an unmarked
 medium card reads as confirmed; REPORTED / CLAIMED badges on the
 medium cards are unchanged.
 """
@@ -20,21 +20,35 @@ REGION_COLOURS = {
     "Asia": (123, 75, 166),
     "Africa": (14, 124, 123),
     "Global": (90, 90, 90),
-    # Oceania (2026-11-21, P3): deep magenta — distinct from Latin
-    # America red (pinker) and Asia purple (redder). First use:
-    # card 13, Phillips in Wellington.
-    "Oceania": (190, 45, 115),
 }
 
 # Each lead: id, region, kicker, headline, dek, source, status.
-# LEAD ORDER (2026-11-21, user order): Kyiv is lead 1, Cyclone
-# Akvan (promoted from card 14) is lead 2, S&P stays 3, COP31
-# stays 4. Poland moves to card 14 (see CARDS) reframed as
-# "Poland says". The ids ARE the display numbers (number circles
-# and map dots), so they are renumbered with the order.
+# LEAD ORDER (2026-11-21, round 5, user order): Poland returns to
+# lead 1 as CONFIRMED (second source confirmed: AP, ISW and The
+# Times all report two Russian missiles landed in Poland Fri 20 Nov;
+# Tusk called it a deliberate provocation). Kyiv is lead 2, Cyclone
+# Akvan is lead 3, S&P stays 4. COP31 is demoted to card 5. The ids
+# ARE the display numbers (number circles and map dots), so they are
+# renumbered with the order.
 LEADS = [
     {
         "id": 1,
+        "region": "Europe",
+        "kicker": "EUROPE · POLAND",
+        # ROUND 5 (2026-11-21): Poland is CONFIRMED, not REPORTED —
+        # AP, ISW and The Times independently confirm two Russian
+        # missiles landed in eastern Poland Fri 20 Nov, and Tusk
+        # called it a deliberate/intentional provocation. Definitive
+        # headline again ("Russian missiles hit Poland"), source
+        # "AP · ISW".
+        "headline": "Russian missiles hit Poland",
+        "dek": "Two missiles fell in the east; Tusk: deliberate "
+               "provocation.",
+        "source": "AP · ISW",
+        "status": "CONFIRMED",
+    },
+    {
+        "id": 2,
         "region": "Europe",
         "kicker": "EUROPE · UKRAINE WAR",
         "headline": "Russia hits Kyiv bridges in overnight attack",
@@ -44,19 +58,24 @@ LEADS = [
         # FIT (2026-11-21): the "(Kyiv Independent, BBC)" tail was
         # dropped — the source credit already shows both names, and
         # the full dek truncated at 11px. Facts unchanged.
+        # ROUND 5 (2026-11-21): source is now "Kyiv Independent ·
+        # CNN" so the 9-killed figure is properly cited (CNN
+        # confirms 9; early reports said 8).
         "dek": "111 missiles and 404 drones; at least nine killed, "
                "three bridges hit; power and water cut.",
-        "source": "Kyiv Independent · BBC",
+        "source": "Kyiv Independent · CNN",
         "status": "CONFIRMED",
     },
     {
-        "id": 2,
+        "id": 3,
         "region": "Asia",
-        "kicker": "ODISHA · INDIA · CYCLONE",
-        # P1 (2026-11-21): promoted from card 14 — the day's biggest
-        # natural disaster (300,000+ moved to shelters) is now a
-        # lead. Same headline/dek/facts as the card (landfall near
-        # Gopalpur from 8 am, winds 70–80 km/h, no deaths reported).
+        "kicker": "ASIA · CYCLONE",
+        # ROUND 5 (2026-11-21): kicker was "ODISHA · INDIA ·
+        # CYCLONE" — now "ASIA · CYCLONE" to match the other
+        # leads' "region · topic" pattern. Same headline/dek/facts
+        # as before (landfall near Gopalpur from 8 am, winds
+        # 70–80 km/h, no deaths reported; 300,000+ to shelters —
+        # precise: 370,000 evacuated per Odisha Chief Secretary).
         "headline": "Cyclone Akvan hits coast; 300,000+ to shelters",
         "dek": "Landfall near Gopalpur ~8 am; 70–80 km/h; no deaths "
                "reported.",
@@ -64,37 +83,51 @@ LEADS = [
         "status": "CONFIRMED",
     },
     {
-        "id": 3,
+        "id": 4,
         "region": "North America",
         "kicker": "N. AMERICA · MARKETS",
         "headline": "S&P 500 slides into correction as AI stocks fall",
-        "dek": "AI sell-off: S&P down 3.7% to 6,910, Nasdaq down 5.3%, "
-               "wiping out 2026 gains.",
+        # ROUND 5 (2026-11-21): FRIDAY 20 Nov numbers (user order) —
+        # S&P 500 closed 6,910.39, down 3.70%, entering correction
+        # (off 11.62% from its record close); Nasdaq down 5.28%.
+        # "Wiping out 2026 gains" is DROPPED: the S&P was still up
+        # 0.95% year-to-date at the Friday close (Morningstar/Dow
+        # Jones Market Data) — it was the NASDAQ that wiped out its
+        # 2026 gains (now -2.7% YTD).
+        "dek": "AI sell-off: S&P down 3.7% to 6,910, Nasdaq down 5.3%.",
         "source": "Reuters",
-        "status": "CONFIRMED",
-    },
-    {
-        "id": 4,
-        "region": "Global",
-        "kicker": "GLOBAL · CLIMATE",
-        "headline": "COP31 into overtime as draft drops fossil fuels",
-        "dek": "Summit runs past its deadline as a draft deal drops all "
-               "fossil-fuel phase-out text.",
-        "source": "AP",
         "status": "CONFIRMED",
     },
 ]
 
 # Each card: id, region, kicker, headline, dek, source, status.
+# CARD LINEUP (2026-11-21, round 5, user order): 5 COP31 (demoted
+# from lead 4), 6 UK-EU, 7 UN chief, 8 Iran war, 9 Hodeidah,
+# 10 Peru quake, 11 Palisades, 12 Pill, 13 Nvidia, 14 Iraq
+# (promoted from brief 37), 15 Gaza, 16 Gen Z. The cricket card
+# is gone — Phillips 118 vs India moves to the SPORT line.
 CARDS = [
     {
-        "id": 5, "region": "Europe", "kicker": "EUROPE · DIPLOMACY",
+        "id": 5, "region": "Global", "kicker": "GLOBAL · CLIMATE",
+        # ROUND 5 (2026-11-21): COP31 demoted from lead 4 to card 5.
+        # Same headline/facts as the lead (summit runs past its
+        # deadline; a draft deal drops all fossil-fuel phase-out
+        # text). FIT: the lead dek (82 chars) truncates to 2 lines
+        # in the 148px card box even at 9.5px, so the card dek is
+        # the short form — the headline already says "overtime".
+        # New card art: simplified globe + clock.
+        "headline": "COP31 into overtime as draft drops fossil fuels",
+        "dek": "Draft deal drops all fossil-fuel phase-out text.",
+        "source": "AP", "status": "CONFIRMED",
+    },
+    {
+        "id": 6, "region": "Europe", "kicker": "EUROPE · DIPLOMACY",
         "headline": "UK and EU sign post-Brexit deals",
         "dek": "Food exports, carbon markets, youth scheme for 18–31s.",
         "source": "BBC", "status": "CONFIRMED",
     },
     {
-        "id": 6, "region": "Global", "kicker": "GLOBAL · UNITED NATIONS",
+        "id": 7, "region": "Global", "kicker": "GLOBAL · UNITED NATIONS",
         "headline": "UN chief race stalls after ninth vote",
         "dek": "Ninth poll leaves every candidate blocked by a veto.",
         # Second source (2026-11-21): Apex Wire independently reported
@@ -103,13 +136,13 @@ CARDS = [
         "source": "PassBlue · Apex Wire", "status": "CONFIRMED",
     },
     {
-        "id": 7, "region": "Middle East", "kicker": "MIDDLE EAST · IRAN WAR",
+        "id": 8, "region": "Middle East", "kicker": "MIDDLE EAST · IRAN WAR",
         "headline": "Iran war nears ninth month; Trump in no rush",
         "dek": "Trump: no decision on next Iran step until 2027.",
         "source": "CBS News", "status": "REPORTED",
     },
     {
-        "id": 8, "region": "Middle East", "kicker": "MIDDLE EAST · YEMEN",
+        "id": 9, "region": "Middle East", "kicker": "MIDDLE EAST · YEMEN",
         "headline": "Saudi coalition strikes Hodeidah port",
         "dek": "Port hit after five Houthi drones were intercepted.",
         # Second source (2026-11-21): Reuters independently reported
@@ -118,20 +151,20 @@ CARDS = [
         "source": "Arab News · Reuters", "status": "CONFIRMED",
     },
     {
-        "id": 9, "region": "Latin America",
+        "id": 10, "region": "Latin America",
         "kicker": "LATIN AMERICA · QUAKE",
         "headline": "Magnitude 6.7 earthquake hits central Peru",
         "dek": "Quake near Cerro de Pasco shook Lima; no tsunami.",
         "source": "USGS", "status": "CONFIRMED",
     },
     {
-        "id": 10, "region": "North America", "kicker": "N. AMERICA · WILDFIRE",
+        "id": 11, "region": "North America", "kicker": "N. AMERICA · WILDFIRE",
         "headline": "Jury convicts man over deadly Palisades Fire",
         "dek": "Guilty of arson in the fire that killed 12 people.",
         "source": "AP", "status": "CONFIRMED",
     },
     {
-        "id": 11, "region": "Global", "kicker": "GLOBAL · HEALTH",
+        "id": 12, "region": "Global", "kicker": "GLOBAL · HEALTH",
         "headline": "Pill shows promise against pancreatic cancer",
         # P4 (2026-11-21): "nearly all" was hype — the trial's
         # objective response rate is 60.7% of 61 patients. Precise
@@ -143,58 +176,29 @@ CARDS = [
         "source": "The Guardian", "status": "REPORTED",
     },
     {
-        "id": 12, "region": "North America", "kicker": "N. AMERICA · TECH",
-        # P2 (2026-11-21): merged card — the old 12 (AI-tax threat)
-        # and 13 (Nvidia down 14%) were the same Nvidia/AI story
-        # twice. One card now carries both angles; the freed slot
-        # becomes the Oceania card (13, Phillips).
-        # FIT (2026-11-21): headline tightened ("as SEC probe report
-        # and AI-tax threat land" -> "on SEC probe and AI-tax
-        # threat") and dek tightened ("Reuters says SEC staff
-        # examining accounting; Trump threatens tax on overseas AI
-        # centres (Reuters, BBC)" -> "SEC probing Nvidia accounts;
-        # Trump threatens AI-centre tax") — the as-proposed texts
-        # overflowed to 4 headline lines and truncated the dek.
-        # Facts unchanged; sources in the credit line.
-        "headline": "Nvidia sinks 14% on SEC probe and AI-tax threat",
+        "id": 13, "region": "North America", "kicker": "N. AMERICA · TECH",
+        # ROUND 5 (2026-11-21): FRIDAY 20 Nov numbers (user order) —
+        # Nvidia closed down 14.01% on Friday (KuCoin/CNBC). The
+        # headline's cause is now neutral: "on" -> "amid"
+        # ("Nvidia sinks 14% amid SEC probe and AI-tax threat").
+        # Art "-14%" unchanged.
+        "headline": "Nvidia sinks 14% amid SEC probe and AI-tax threat",
         "dek": "SEC probing Nvidia accounts; Trump threatens "
                "AI-centre tax.",
         "source": "Reuters · BBC", "status": "REPORTED",
     },
     {
-        "id": 13, "region": "Oceania", "kicker": "WELLINGTON · CRICKET",
-        # P3 (2026-11-21): Oceania — the 8th region, previously
-        # zero. Fills the slot freed by merging 12+13. Phillips
-        # 118 off 216 balls in Wellington completes centuries in
-        # Tests, ODIs and T20Is vs India in 2026 — first NZ player
-        # to do it in a calendar year (ICC).
-        # FIX (2026-11-21, user order): the headline MUST carry
-        # "vs India" before the record claim — "first NZ century in
-        # all formats" alone is false (Williamson and others have
-        # centuries in all three formats generally); the record is
-        # centuries in all three formats AGAINST INDIA. Headline is
-        # now just "Phillips hits 118 vs India" (2 lines) and the
-        # dek carries the full record claim.
-        "headline": "Phillips hits 118 vs India",
-        "dek": "First NZ batter with centuries in all three formats "
-               "against India.",
-        "source": "ICC", "status": "CONFIRMED",
-    },
-    {
-        "id": 14, "region": "Europe", "kicker": "EUROPE · POLAND",
-        # LEAD REORDER (2026-11-21, user order): Poland moves here
-        # from lead 1 into Akvan's old slot. The claim is now
-        # ATTRIBUTED — headline "Poland says", dek read as Poland's
-        # claim — so it is not stated as an un-attributed fact, and
-        # the status is REPORTED (as stated) rather than CONFIRMED.
-        # Facts unchanged: two missiles fell in eastern Poland,
-        # Tusk calls it a deliberate provocation. FIT: the dek is
-        # shortened to fit 2 lines at 10.5px ("in the east" =
-        # eastern Poland; the art shows the eastern border).
-        "headline": "Poland says Russian missiles hit its soil",
-        "dek": "Two missiles fell in the east; Tusk: deliberate "
-               "provocation.",
-        "source": "BBC", "status": "REPORTED",
+        "id": 14, "region": "Middle East", "kicker": "MIDDLE EAST · IRAQ",
+        # ROUND 5 (2026-11-21): promoted from brief 37 — the Iraq
+        # story (govt forces entered Jurf al-Nasr, Kataeb Hezbollah
+        # stronghold in Babil, Fri 20 Nov morning, no resistance,
+        # handover ~14:00 Baghdad time) is a card now; the cricket
+        # card it replaces moves to the SPORT line. New card art:
+        # Iraq map + red star + tricolour flag.
+        "headline": "Iraq enters Jurf al-Nasr",
+        "dek": "Forces enter Kataeb Hezbollah stronghold; no "
+               "resistance.",
+        "source": "AFP", "status": "CONFIRMED",
     },
     {
         "id": 15, "region": "Middle East", "kicker": "MIDDLE EAST · GAZA",
@@ -215,6 +219,8 @@ CARDS = [
 # chips; briefs 51/52 now fly real flags — US for GTA VI, set in
 # Leonida, Rockstar's Florida ("Vice City, USA"); DE for Riemann,
 # the German mathematician behind the 1859 hypothesis.)
+# ROUND 5 (2026-11-21): brief 37 (Iraq) is DELETED — it is a card
+# now (card 14). 23 briefs remain.
 BRIEFS = [
     (17, "Europe", "DE", "Lufthansa to cut 1,000 jobs"),
     (18, "Europe", "DK", "Denmark expels Russian diplomat"),
@@ -230,7 +236,6 @@ BRIEFS = [
     (33, "North America", "US", "Gupta gets 19½ years in NY plot"),
     (35, "North America", "US", "Trump: more work on Canada deal"),
     (36, "Middle East", "IR", "Qeshm blast blamed on munitions"),
-    (37, "Middle East", "IQ", "Iraq enters Jurf al-Nasr"),
     (38, "Middle East", "US", "Trump: Iran wants a deal"),
     (39, "Middle East", "US", "US sanctions four Iranians"),
     (40, "Africa", "NG", "Nigeria boat capsizes; 4 dead"),
@@ -260,7 +265,7 @@ BRIEF_SOURCE_LABEL = {
     23: "MALAYA", 25: "JAPAN TIMES",
     26: "CNBC", 27: "JAPAN TIMES", 28: "DECCAN", 29: "BBC",
     31: "RTRS", 33: "RTRS",
-    35: "RTRS", 36: "RTRS", 37: "AL JAZEERA", 38: "RTRS",
+    35: "RTRS", 36: "RTRS", 38: "RTRS",
     39: "RTRS", 40: "AL JAZEERA", 41: "CAPITAL", 42: "ENCA",
     43: "ELZATOUNA",
     47: "RTRS", 50: "CANA",
@@ -276,9 +281,9 @@ BRIEF_SOURCE_LABEL = {
 # title; 11:00 vs 14:00, whose left-anchored label starts at its dot). Times and labels are
 # the exact facts from stories.json; only the placement is designed.
 # Region is verified against stories.json (and the story it belongs to):
-# Kyiv/Poland are Europe (stories 2/1), Iraq is Middle East
-# (brief 37), COP31 is Global (story 4), S&P is North America
-# (story 3). The timeline dots, stems, rules and times are drawn
+# Kyiv/Poland are Europe (leads 2/1), Iraq is Middle East
+# (card 14), COP31 is Global (card 5), S&P is North America
+# (lead 4). The timeline dots, stems, rules and times are drawn
 # in the event's region colour (REGION_COLOURS above).
 # TIMELINE-ONLY CUT (2026-11-21): 5 events, down from 7 — the
 # 11:30 UK-EU deals and 20:00 Palisades verdict markers were
@@ -298,124 +303,94 @@ TIMELINE = [
 # with a spring force (each dot pulled to its anchor, pushed apart
 # from any dot closer than 13.5px) — no leader lines, no anchor dots:
 # every dot sits on, or the minimum nudge from, its true place.
-# Anchors:
-#   1 eastern Poland (Lublin area) · 2 Kyiv · 3 New York (NYSE) ·
-#   4 Antalya (COP31) · 5 Brussels · 6 New York (UN HQ) · 7 Tehran ·
-#   8 Hodeidah, Yemen · 9 Cerro de Pasco, Peru · 10 Los Angeles ·
-#   11 London (Guardian report; the trial story names no place) ·
-#   12 Washington DC · 13 Santa Clara, California (Nvidia HQ) ·
-#   14 Manila · 15 Gaza · 16 Berlin.
+# Anchors (ROUND 5, 2026-11-21 — renumbered with the stories):
+#   1 eastern Poland (Lublin area) · 2 Kyiv · 3 Odisha (Akvan
+#   landfall) · 4 New York (NYSE) · 5 Antalya (COP31) · 6 Brussels ·
+#   7 New York (UN HQ) · 8 Tehran · 9 Hodeidah, Yemen · 10 Cerro de
+#   Pasco, Peru · 11 Los Angeles · 12 London (Guardian report; the
+#   trial story names no place) · 13 Santa Clara, California
+#   (Nvidia HQ) · 14 Jurf al-Nasr, Iraq · 15 Gaza · 16 Berlin.
 MAP_ANCHORS = [
-    # LEAD REORDER (2026-11-21): ids renumbered with the stories —
-    # 1 Kyiv (30.5, 50.45), 2 Odisha (85.0, 19.3), 14 Poland
-    # (23.0, 51.5). All other anchors unchanged.
-    (1, "Europe", 30.5, 50.45),
-    (2, "Asia", 85.0, 19.3),
-    (3, "North America", -74.0, 40.7),
-    (4, "Global", 30.7, 36.9),
-    (5, "Europe", 4.35, 50.85),
-    (6, "Global", -74.0, 40.7),
-    (7, "Middle East", 51.4, 35.7),
-    (8, "Middle East", 42.8, 14.8),
-    (9, "Latin America", -76.25, -10.7),
-    (10, "North America", -118.25, 34.05),
-    (11, "Global", -0.1, 51.5),
-    (12, "North America", -121.9, 37.4),
-    # P3 (2026-11-21): card 13 is now Phillips in Wellington, NZ
-    # (lon 174.8) — beyond the map's eastern edge (lon 155), so the
-    # dot is clamped to the edge at Wellington's latitude: it sits
-    # in the Pacific at the frame's right edge, pointing toward NZ.
-    (13, "Oceania", 155.0, -41.3),
-    (14, "Europe", 23.0, 51.5),
+    (1, "Europe", 23.0, 51.5),
+    (2, "Europe", 30.5, 50.45),
+    (3, "Asia", 85.0, 19.3),
+    (4, "North America", -74.0, 40.7),
+    (5, "Global", 30.7, 36.9),
+    (6, "Europe", 4.35, 50.85),
+    (7, "Global", -74.0, 40.7),
+    (8, "Middle East", 51.4, 35.7),
+    (9, "Middle East", 42.8, 14.8),
+    (10, "Latin America", -76.25, -10.7),
+    (11, "North America", -118.25, 34.05),
+    (12, "Global", -0.1, 51.5),
+    (13, "North America", -121.9, 37.4),
+    (14, "Middle East", 44.2, 32.9),
     (15, "Middle East", 34.45, 31.5),
     (16, "Europe", 13.4, 52.5),
 ]
 
-# Brief dots: (brief id, region, longitude, latitude) of the brief's
-# true place — the small unnumbered dots on the map, in the brief's
-# region colour. Where a brief names a city it sits on that city;
-# where it is a national story it sits on that country's capital or
-# the place named. Anchors:
-#   17 Cologne (Lufthansa HQ) · 18 Copenhagen · 19 Tallinn ·
-#   21 Paris · 23 Odisha coast (cyclone landfall) ·
-#   25 Tokyo · 26 Osaka (second Japan brief) · 27 Riyadh ·
-#   28 Ahmedabad (bullet-train terminus) · 29 Kathmandu ·
-#   31 New York (Mamdani/Rikers) · 32 St Louis
-#   (Bayer/Monsanto US base, Roundup litigation) · 33 New York
-#   (Gupta sentencing, SDNY) · 34 Washington DC (White House) ·
-#   35 Ottawa (the Canada trade deal is the story's subject) ·
-#   36 Qeshm Island · 37 Jurf al-Nasr, Iraq · 38 Washington DC ·
-#   39 Washington DC (Treasury sanctions) · 40 Abuja · 41 Turkana,
-#   Kenya · 42 Johannesburg · 43 Egypt's Eastern Desert (Red Sea
-#   gold-mining area) · 44 Accra · 47 Tapachula, Chiapas (caravan entry) ·
-#   48 Santiago · 49 Buenos Aires · 50 Caracas · 51 central
-#   Florida (Leonida, GTA VI's setting) · 52 Gottingen (Riemann).
-BRIEF_ANCHORS = [
-    (17, "Europe", 7.0, 50.95),
-    (18, "Europe", 12.57, 55.68),
-    (19, "Europe", 24.75, 59.44),
-    (21, "Europe", 2.35, 48.86),
-    (23, "Asia", 121.0, 14.6),
-    (25, "Asia", 139.7, 35.7),
-    (26, "Asia", 135.5, 34.7),
-    (27, "Asia", 46.7, 24.6),
-    (28, "Asia", 72.6, 23.0),
-    (29, "Asia", 85.3, 27.7),
-    (31, "North America", -74.0, 40.7),
-    (33, "North America", -74.0, 40.7),
-    (35, "North America", -75.7, 45.4),
-    (36, "Middle East", 56.3, 26.9),
-    (37, "Middle East", 44.2, 32.9),
-    (38, "Middle East", -77.0, 38.9),
-    (39, "Middle East", -77.0, 38.9),
-    (40, "Africa", 7.5, 9.1),
-    (41, "Africa", 36.1, 3.1),
-    (42, "Africa", 28.0, -26.2),
-    (43, "Africa", 32.5, 26.5),
-    (47, "Latin America", -92.6, 15.9),
-    (50, "Latin America", -66.9, 10.5),
-    (51, "Global", -81.5, 27.8),
-]
+# ROUND 5 (2026-11-21): the brief dots are REMOVED from the map
+# (review item 9) — only the 16 numbered dots remain, so
+# BRIEF_ANCHORS is deleted entirely (it was used only by draw_map's
+# brief-dot layout/drawing).
 
 DATE_CHECK_LINES = [
-    # EXPANDED 2026-11-21 (user order): LEFT OUT 8 items, NOT YET
+    # EXPANDED 2026-11-21 (user order): LEFT OUT 7 items, NOT YET
     # 3 items — the 5 added items are all verified real (parent
     # verified by live news search): Anthropic's $83 IPO debut
     # (first Nasdaq trading Thu 19 Nov), Tonga's drought emergency
     # (27-day state of emergency Thu 19 Nov), the migrant boat lost
-    # off Senegal (capsized off Yenne, reported Thu 19 Nov), the
-    # Senate Iran war-powers vote (rejected Thu 19 Nov — NO vote
-    # tally: sources report it as both 48-51 and 51-48), and the
-    # COP31 final text (due Sat 21 Nov; the summit ran overtime).
+    # off Senegal (incident overnight Tue->Wed 17-18 Nov, reported
+    # Thu 19 Nov — ROUND 5: the row date is Wed 18 Nov, the day
+    # of the sinking, not Thu 19 Nov), the Senate Iran war-powers
+    # vote (rejected Thu 19 Nov — NO vote tally: sources report it
+    # as both 48-51 and 51-48), and the COP31 final text (due Sat
+    # 21 Nov; the summit ran overtime).
     # EDGE stays DELETED (it named "Sat 21 Nov" for the Peru quake,
     # which contradicted the paper's Friday date; the card now
     # carries "FRI 19:09 LOCAL" instead).
     "LEFT OUT: Myanmar genocide ruling, Thu 19 Nov · Trump–Xi–Putin summit, "
     "Thu 19 Nov · Voyager 1 light-day, Wed 18 Nov · Anthropic's $83 IPO "
     "debut, Thu 19 Nov · Tonga's drought emergency, Thu 19 Nov · Migrant "
-    "boat lost off Senegal, Thu 19 Nov · Senate Iran war-powers vote, "
+    "boat lost off Senegal, Wed 18 Nov · Senate Iran war-powers vote, "
     "Thu 19 Nov",
     "NOT YET: BepiColombo enters Mercury orbit, Sat 21 Nov · NATO chief Rutte "
     "due in Warsaw, Sat 21 Nov · COP31 final text, Sat 21 Nov",
 ]
 
 # (text, is_red) segments for the markets line.
+# ROUND 5 (2026-11-21): FRIDAY 20 Nov closes (user order), verified
+# by live search — S&P 500 6,910.39 -3.70%, Nasdaq 22,617.73 -5.28%,
+# Nikkei 56,436.65 -5.06%, Brent $92.57/bbl (settled +0.64%; the old
+# $89.87 was wrong for Friday), Gold -4% (Dec futures -3.98% to
+# $3,539/oz), Bitcoin -4.5% (to just below $58,200; the old -4.15%
+# was understated for Friday).
 MARKETS_SEGMENTS = [
     ("S&P 500 6,910 ", False), ("-3.7%", True), ("  ·  Nasdaq ", False),
     ("-5.3%", True), ("  ·  Nikkei ", False), ("-5.06%", True),
-    ("  ·  Brent $89.87  ·  Gold ", False), ("-4%", True),
-    ("  ·  Bitcoin ", False), ("-4.15%", True),
+    ("  ·  Brent $92.57  ·  Gold ", False), ("-4%", True),
+    ("  ·  Bitcoin ", False), ("-4.9%", True),
 ]
 
+# ROUND 5 (2026-11-21): cricket moves here as a 5th SPORT item —
+# "Phillips 118 vs India" (the card is gone; Iraq took its slot).
+# Harden's item is shortened (", Cavs 128–119 Pacers" -> ", Cavs win")
+# so all 5 items still fit in 4 lines at 12.5px.
 SPORTS_TEXT = (
     "Alcaraz beats Cobolli at ATP Finals  ·  A Lim Kim aces 16th, leads "
     "LPGA finale  ·  Price undisputed welterweight champion  ·  Harden's "
-    "50th 50-pt game, Cavs 128–119 Pacers"
+    "50th 50-pt game, Cavs win  ·  Phillips 118 vs India"
 )
 
+# ROUND 5 (2026-11-21): footer rewritten — "Times are UTC; local date
+# counts; market figures are closing values." added (review items 3
+# and 11: the Peru quake's local date counts, and market figures are
+# closing values). "Original drawings." dropped and the opening
+# shortened to "Friday 20 November 2026." so the line still fits the
+# 1000px content width at 9.5px on ONE line (measured 990.5px).
 FOOTER_TEXT = (
-    "Every story happened, or was first reported, on Friday "
-    "20 November 2026. CLAIMED = one side's account. REPORTED = as stated. "
-    "Unmarked = confirmed. Sources: Reuters, AP, BBC, AFP, Al Jazeera. "
-    "Original drawings."
+    "Friday 20 November 2026. CLAIMED = one side's account. REPORTED = "
+    "as stated. Unmarked = confirmed. Times are UTC; local date counts; "
+    "market figures are closing values. Sources: Reuters, AP, BBC, AFP, "
+    "Al Jazeera."
 )

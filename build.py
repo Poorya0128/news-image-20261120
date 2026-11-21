@@ -49,6 +49,15 @@ PANEL_BORDER = (210, 205, 192)
 INK = (26, 26, 26)
 DEK = (74, 72, 66)
 MUTED = (110, 106, 96)
+# SOURCE (2026-11-21, user order): the colour of EVERY source
+# credit on the page — brief labels, card sources, lead sources.
+# A deep violet (98, 56, 158), chosen because no violet/purple
+# appears anywhere else in the paper (red, navy, ink, warm greys,
+# gold, teal are all taken), so a source credit is instantly
+# recognisable as a source, and because it is dark and saturated
+# enough to read clearly at 8–9px against the cream paper — far
+# more visible than the old muted greys (DEK/MUTED) it replaces.
+SOURCE = (98, 56, 158)
 RED = (176, 32, 32)
 NAVY = (13, 27, 62)
 NAVY2 = (16, 32, 74)
@@ -292,6 +301,24 @@ def inter(size, weight=400):
     return _font_cache[key]
 
 
+def arch(size, weight=800, width=80):
+    """Archivo; its axes are [weight, width]. Used for SOURCE
+    credits (2026-11-21, user order): at small sizes a mildly
+    condensed Archivo (width 80) reads clearer than Inter — its
+    grotesque letterforms stay open and distinct even when bold,
+    and being a different face from the Inter headlines it marks
+    a credit as a credit at a glance. The condensation is also
+    what makes the 3px source-to-divider gap affordable: at 8px
+    it runs ~4–6px narrower per label than Inter 800, so the
+    tightest briefs still fit whole with the gap (see
+    draw_briefs)."""
+    key = ("a", size, weight, width)
+    if key not in _font_cache:
+        path = ARCHIVO if ARCHIVO.exists() else INTER
+        _font_cache[key] = _load(path, size, [weight, width])
+    return _font_cache[key]
+
+
 def title_font(size):
     """Merriweather SemiBold for the masthead title. WEIGHT (2026-11-21,
     user order): 600, down from 900 Black — the "Friday 20 November
@@ -460,7 +487,7 @@ def draw_masthead(draw):
     # shifting up 15px (see build()).
     draw.text((12, 6), "THE DAY IN WORLD NEWS", font=inter(12, 800),
               fill=RED, anchor="la")
-    draw.text((1012, 6), "46 STORIES · 7 REGIONS · ALL FROM THIS FRIDAY",
+    draw.text((1012, 6), "40 STORIES · 8 REGIONS · ALL FROM THIS FRIDAY",
               font=inter(10.5, 700), fill=DEK, anchor="ra")
     size = 68
     while size >= 68:
@@ -586,31 +613,37 @@ def draw_timeline(draw):
 # the hero — flat graphic shapes in the paper palette only.
 
 def lead_art_1(draw, x, y0):
-    """Poland — BEFORE: pale washed-out map, two thin dashed red
-    trails, two small bursts. AFTER: a stronger blue field, a big
-    cream Poland map with a thick red EASTERN BORDER, two THICK
-    solid red missile trails (not dashed) streaking in from the
-    east, each ending in a LARGE layered impact burst, and a bold
-    red "2" badge — two missiles, two hits, at first glance."""
-    draw.rectangle([x, y0, x + 244, y0 + 80], fill=(205, 220, 238))
-    land = [(x + 10, y0 + 26), (x + 55, y0 + 12), (x + 115, y0 + 10),
-            (x + 175, y0 + 16), (x + 225, y0 + 24), (x + 234, y0 + 46),
-            (x + 208, y0 + 66), (x + 150, y0 + 74), (x + 90, y0 + 76),
-            (x + 38, y0 + 68), (x + 12, y0 + 48)]
+    """Poland — a BIG cream Poland map filling most of the band on a
+    strong blue field, a THICK red EASTERN BORDER, and TWO thick solid
+    red missile trails streaking in from the east edge, each ending
+    in a LARGE layered impact burst — two missiles, two hits, at
+    first glance. No red "2" badge (user order 2026-11-21: it
+    clashed with the card numbering)."""
+    draw.rectangle([x, y0, x + 244, y0 + 80], fill=(190, 210, 232))
+    # Big Poland map: nearly the whole band, simplified outline.
+    land = [(x + 8, y0 + 30), (x + 38, y0 + 12), (x + 95, y0 + 7),
+            (x + 150, y0 + 12), (x + 205, y0 + 16), (x + 232, y0 + 24),
+            (x + 240, y0 + 42), (x + 228, y0 + 58), (x + 205, y0 + 72),
+            (x + 150, y0 + 76), (x + 95, y0 + 74), (x + 45, y0 + 70),
+            (x + 14, y0 + 56), (x + 8, y0 + 42)]
     draw.polygon(land, fill=(240, 232, 205), outline=(90, 85, 75))
-    # Eastern border: a thick red line along the map's east edge.
-    draw.line([(x + 214, y0 + 20), (x + 226, y0 + 26),
-               (x + 232, y0 + 46), (x + 218, y0 + 60)],
-              fill=RED, width=3, joint="curve")
-    # Two thick solid missile trails from the east edge.
-    for (x1, y1, x2, y2) in [(244, 16, 188, 36), (244, 46, 200, 58)]:
+    draw.line(land + [land[0]], fill=(90, 85, 75), width=2,
+              joint="curve")
+    # Thick red eastern border, just inside the map's east edge.
+    draw.line([(x + 218, y0 + 18), (x + 230, y0 + 24),
+               (x + 238, y0 + 40), (x + 230, y0 + 56),
+               (x + 214, y0 + 68)], fill=RED, width=5, joint="curve")
+    # Two thick solid missile trails from the east edge, crossing
+    # the border to their impact points.
+    for (x1, y1, x2, y2) in [(244, 8, 198, 28), (244, 68, 206, 58)]:
         draw.line([(x + x1, y0 + y1), (x + x2, y0 + y2)], fill=RED,
-                  width=4)
+                  width=5)
         draw.line([(x + x1, y0 + y1), (x + x2, y0 + y2)],
                   fill=(255, 120, 90), width=2)
-    # Large layered impact bursts with radiating ticks.
-    for bx, by, r in [(188, 36, 18), (200, 58, 15)]:
-        for ang in range(0, 360, 45):
+    # Large layered impact bursts with radiating ticks and a
+    # white-hot core.
+    for bx, by, r in [(198, 28, 20), (206, 56, 17)]:
+        for ang in range(0, 360, 30):
             a = math.radians(ang)
             draw.line([x + bx + (r + 2) * math.cos(a),
                        y0 + by + (r + 2) * math.sin(a),
@@ -620,106 +653,122 @@ def lead_art_1(draw, x, y0):
         star(draw, x + bx, y0 + by, r, r // 3 + 1, (255, 190, 40))
         star(draw, x + bx, y0 + by, r * 2 // 3, 3, (255, 120, 40))
         star(draw, x + bx, y0 + by, r // 2, 2, RED)
-    # Bold "2" badge: two missiles.
-    draw.ellipse([x + 4, y0 + 4, x + 26, y0 + 26], fill=RED,
-                 outline=(255, 255, 255), width=2)
-    draw.text((x + 15, y0 + 15), "2", font=inter(14, 800),
-              fill=(255, 255, 255), anchor="mm")
-    draw.text((x + 32, y0 + 15), "POLAND", font=inter(10, 800),
+        draw.ellipse([x + bx - 3, y0 + by - 3, x + bx + 3, y0 + by + 3],
+                     fill=(255, 255, 255))
+    # Labels, only where they fit cleanly in open space.
+    draw.text((x + 22, y0 + 46), "POLAND", font=inter(11, 800),
               fill=INK, anchor="lm")
-    draw.text((x + 240, y0 + 6), "EASTERN BORDER", font=inter(8, 700),
-              fill=DEK, anchor="ra")
-
+    draw.text((x + 240, y0 + 3), "EASTERN BORDER", font=inter(8, 700),
+              fill=INK, anchor="ra")
 
 def lead_art_2(draw, x, y0):
-    """Kyiv — BEFORE: thin dark bridge, two small bursts, a sparse
-    drone swarm. AFTER: the bridge deck is BROKEN at the impact
-    point — a visible gap with a huge fireball, smoke and river
-    reflections — so the hit reads instantly; a denser drone
-    swarm overhead. First glance: a bridge broken and burning
-    at night."""
-    draw.rectangle([x, y0, x + 244, y0 + 80], fill=(24, 32, 58))
-    draw.rectangle([x, y0 + 56, x + 244, y0 + 80], fill=(36, 52, 92))
-    # Bridge deck, broken at the impact point (x+108..x+136).
-    draw.rectangle([x + 8, y0 + 44, x + 108, y0 + 52], fill=(16, 20, 38))
-    draw.rectangle([x + 136, y0 + 44, x + 236, y0 + 52],
-                   fill=(16, 20, 38))
-    # Arch supports under each deck segment.
-    draw.arc([x + 30, y0 + 44, x + 96, y0 + 80], 180, 360,
-             fill=(16, 20, 38), width=3)
-    draw.arc([x + 148, y0 + 44, x + 214, y0 + 80], 180, 360,
-             fill=(16, 20, 38), width=3)
-    # Smoke plume rising from the gap.
-    for sx, sy, sr in [(122, 30, 6), (118, 22, 5), (126, 14, 4)]:
-        draw.ellipse([x + sx - sr, y0 + sy - sr, x + sx + sr,
-                      y0 + sy + sr], fill=(110, 110, 125))
-    # Huge fireball at the gap, with radiating ticks.
-    bx, by = 122, 48
+    """Kyiv bridge attack at night — REBUILT: one huge bold
+    suspension bridge spans the whole band, its deck BROKEN at
+    the impact point by a giant layered orange fireball, with a
+    second smaller burst on the left deck and three bright
+    missile trails falling into the bursts. First glance: a
+    bridge burning at night under attack."""
+    # Night sky and river.
+    draw.rectangle([x, y0, x + 244, y0 + 80], fill=(20, 28, 56))
+    draw.rectangle([x, y0 + 56, x + 244, y0 + 80], fill=(24, 38, 72))
+    # A few tiny stars, clear of the bursts and trails.
+    for sx, sy in [(18, 12), (34, 30), (216, 10)]:
+        draw.ellipse([x + sx - 1, y0 + sy - 1, x + sx + 1, y0 + sy + 1],
+                     fill=(210, 220, 240))
+    # Bridge: two tall towers with pointed caps.
+    for tx in (48, 188):
+        draw.rectangle([x + tx, y0 + 16, x + tx + 8, y0 + 52],
+                       fill=(10, 14, 28))
+        draw.polygon([(x + tx, y0 + 18), (x + tx + 8, y0 + 18),
+                      (x + tx + 4, y0 + 8)], fill=(10, 14, 28))
+    # Fan cables from each tower top down to the deck.
+    for (cx, cy, px) in [(52, 16, 14), (52, 16, 32), (52, 16, 74),
+                         (52, 16, 98), (192, 16, 170), (192, 16, 210),
+                         (192, 16, 230)]:
+        draw.line([x + cx, y0 + cy, x + px, y0 + 44],
+                  fill=(70, 82, 122), width=2)
+    # Deck, BROKEN at the impact point (gap x+116..x+152).
+    draw.rectangle([x + 4, y0 + 44, x + 116, y0 + 52], fill=(10, 14, 28))
+    draw.rectangle([x + 152, y0 + 44, x + 240, y0 + 52],
+                   fill=(10, 14, 28))
+    # Missile trails falling into the bursts (bright core over
+    # an orange outer line), drawn before the bursts so the
+    # fireballs cover their ends.
+    for (x1, y1, x2, y2) in [(196, 2, 152, 26), (222, 4, 168, 30),
+                             (64, 2, 74, 32)]:
+        draw.line([x + x1, y0 + y1, x + x2, y0 + y2],
+                  fill=(255, 150, 40), width=3)
+        draw.line([x + x1, y0 + y1, x + x2, y0 + y2],
+                  fill=(255, 230, 150), width=1)
+    # Small burst on the left deck.
+    star(draw, x + 76, y0 + 40, 11, 3, (255, 150, 40))
+    star(draw, x + 76, y0 + 40, 6, 2, (255, 210, 80))
+    # GIANT fireball at the broken deck: round glow, spiky
+    # layered stars, radiating ticks.
+    draw.ellipse([x + 106, y0 + 12, x + 162, y0 + 68],
+                 fill=(255, 120, 40))
     for ang in range(0, 360, 30):
         a = math.radians(ang)
-        draw.line([x + bx + 19 * math.cos(a), y0 + by + 19 * math.sin(a),
-                   x + bx + 25 * math.cos(a), y0 + by + 25 * math.sin(a)],
+        draw.line([x + 134 + 32 * math.cos(a), y0 + 40 + 32 * math.sin(a),
+                   x + 134 + 38 * math.cos(a), y0 + 40 + 38 * math.sin(a)],
                   fill=(255, 150, 40), width=2)
-    star(draw, x + bx, y0 + by, 18, 5, (255, 150, 40))
-    star(draw, x + bx, y0 + by, 12, 4, (255, 210, 80))
-    star(draw, x + bx, y0 + by, 6, 2, RED)
-    # Smaller burst on the left deck.
-    star(draw, x + 58, y0 + 40, 10, 3, (255, 150, 40))
-    star(draw, x + 58, y0 + 40, 6, 2, (255, 210, 80))
-    # River reflections under the fireball.
-    for rx in (114, 122, 130):
-        draw.line([x + rx, y0 + 58, x + rx, y0 + 74],
-                  fill=(255, 150, 40), width=2)
-    # Denser drone swarm (8), clear of the "KYIV 00:30" label.
-    for dx, dy in [(95, 14), (110, 26), (130, 8), (148, 22),
-                   (165, 16), (180, 26), (195, 9), (222, 18)]:
-        draw.line([x + dx - 13, y0 + dy + 2, x + dx - 3, y0 + dy],
-                  fill=(176, 32, 32), width=1)
-        draw.ellipse([x + dx - 2, y0 + dy - 2, x + dx + 2, y0 + dy + 2],
-                     fill=(255, 255, 255))
-    draw.text((x + 10, y0 + 8), "KYIV 00:30", font=inter(10, 800),
+    star(draw, x + 134, y0 + 40, 28, 8, (255, 160, 50), points=12)
+    star(draw, x + 134, y0 + 40, 19, 6, (255, 200, 60), points=12)
+    star(draw, x + 134, y0 + 40, 10, 3, (255, 240, 160), points=12)
+    # Two small smoke puffs drifting right of the fireball.
+    for sx, sy, sr in [(160, 16, 6), (170, 10, 4)]:
+        draw.ellipse([x + sx - sr, y0 + sy - sr, x + sx + sr,
+                      y0 + sy + sr], fill=(105, 110, 130))
+    # Orange reflections in the river under the fireball.
+    for rx, y2 in [(126, 70), (134, 74), (142, 68)]:
+        draw.line([x + rx, y0 + 58, x + rx, y0 + y2],
+                  fill=(255, 150, 40), width=3)
+    draw.text((x + 8, y0 + 69), "KYIV 00:30", font=inter(10, 800),
               fill=(255, 255, 255), anchor="la")
 
-
 def lead_art_4(draw, x, y0):
-    """COP31 — BEFORE: small globe, thin thermometer, a small doc
-    whose "FOSSIL FUELS" has only a thin strike line. AFTER: a
-    bigger globe and a thermometer filled HIGH, and a LARGE
-    document whose "FOSSIL FUELS" is crossed by a THICK red X
-    (not a thin line) with a red "DROPPED" stamp — the draft
-    dropping fossil fuels, at first glance."""
+    """COP31 overtime / fossil fuels dropped — REBUILD: one BIG globe
+    as the single focal (70px of the 80px band height), a LARGE
+    red-rimmed clock at right with its hands past midnight
+    (overtime) and a bold red OVERTIME label under it, and a black
+    oil drop between them crossed by a THICK red X (fossil fuels
+    dropped). Three bold flat shapes only — no document, no
+    thermometer, no small text."""
     draw.rectangle([x, y0, x + 244, y0 + 80], fill=(242, 236, 220))
-    # Bigger globe.
-    draw.ellipse([x + 6, y0 + 10, x + 70, y0 + 70], fill=(70, 130, 180))
-    draw.ellipse([x + 16, y0 + 20, x + 36, y0 + 38], fill=(90, 170, 90))
-    draw.ellipse([x + 40, y0 + 44, x + 58, y0 + 60], fill=(90, 170, 90))
-    # Thermometer, mercury filled high (overheating).
-    draw.rounded_rectangle([x + 76, y0 + 10, x + 88, y0 + 52],
-                           radius=5, fill=(255, 255, 255),
-                           outline=RED, width=1)
-    draw.rectangle([x + 78, y0 + 22, x + 86, y0 + 50], fill=RED)
-    draw.ellipse([x + 73, y0 + 50, x + 91, y0 + 68], fill=RED)
-    # Large document.
-    draw.rectangle([x + 98, y0 + 6, x + 240, y0 + 72], fill=PANEL,
-                   outline=(180, 175, 165))
-    draw.text((x + 169, y0 + 14), "DRAFT DEAL", font=inter(8, 800),
-              fill=MUTED, anchor="ma")
-    draw.text((x + 169, y0 + 34), "FOSSIL FUELS", font=inter(13, 800),
-              fill=INK, anchor="mm")
-    # Thick red X over FOSSIL FUELS (text spans ~x+119..x+219).
-    draw.line([x + 117, y0 + 26, x + 221, y0 + 42], fill=RED, width=3)
-    draw.line([x + 221, y0 + 26, x + 117, y0 + 42], fill=RED, width=3)
-    draw.text((x + 169, y0 + 52), "$120bn", font=inter(11, 800),
-              fill=INK, anchor="mm")
-    draw.line([x + 146, y0 + 52, x + 192, y0 + 52], fill=RED, width=2)
-    # DROPPED stamp inside the document.
-    draw.rectangle([x + 138, y0 + 58, x + 200, y0 + 70], outline=RED,
-                   width=2)
-    draw.text((x + 169, y0 + 64), "DROPPED", font=inter(8, 800),
-              fill=RED, anchor="mm")
-    draw.text((x + 240, y0 + 78), "OVERTIME", font=inter(9, 800),
-              fill=RED, anchor="ra")
-
+    # FOCAL: big globe, left — thick dark outline, bold continents.
+    draw.ellipse([x + 17, y0 + 5, x + 87, y0 + 75], fill=(56, 128, 180),
+                 outline=INK, width=3)
+    draw.ellipse([x + 28, y0 + 14, x + 50, y0 + 34], fill=(84, 168, 92))
+    draw.ellipse([x + 44, y0 + 30, x + 62, y0 + 50], fill=(84, 168, 92))
+    draw.ellipse([x + 58, y0 + 52, x + 78, y0 + 68], fill=(84, 168, 92))
+    draw.ellipse([x + 60, y0 + 14, x + 74, y0 + 26], fill=(84, 168, 92))
+    # Shine on the globe.
+    draw.ellipse([x + 26, y0 + 12, x + 36, y0 + 20],
+                 fill=(150, 205, 235))
+    # SUPPORTING 1: dropped fossil fuel — black oil drop, thick red X.
+    draw.polygon([(x + 118, y0 + 36), (x + 132, y0 + 56),
+                  (x + 104, y0 + 56)], fill=INK)
+    draw.ellipse([x + 104, y0 + 52, x + 132, y0 + 76], fill=INK)
+    draw.ellipse([x + 110, y0 + 58, x + 116, y0 + 66],
+                 fill=(255, 255, 255))
+    draw.line([x + 100, y0 + 34, x + 136, y0 + 78], fill=RED, width=4)
+    draw.line([x + 136, y0 + 34, x + 100, y0 + 78], fill=RED, width=4)
+    # SUPPORTING 2: overtime clock — big, red rim, hands past 12.
+    draw.ellipse([x + 166, y0 + 6, x + 226, y0 + 66],
+                 fill=(255, 255, 255), outline=RED, width=3)
+    # Tick marks (longer at 12/3/6/9).
+    for i in range(12):
+        a = math.radians(i * 30 - 90)
+        r1 = 22 if i % 3 == 0 else 24
+        draw.line([x + 196 + r1 * math.cos(a), y0 + 36 + r1 * math.sin(a),
+                   x + 196 + 27 * math.cos(a), y0 + 36 + 27 * math.sin(a)],
+                  fill=INK, width=2)
+    # Hour hand just past 12, minute hand (red) at ~1: past midnight.
+    draw.line([x + 196, y0 + 36, x + 199, y0 + 18], fill=INK, width=3)
+    draw.line([x + 196, y0 + 36, x + 212, y0 + 20], fill=RED, width=2)
+    draw.ellipse([x + 193, y0 + 33, x + 199, y0 + 39], fill=RED)
+    draw.text((x + 196, y0 + 70), "OVERTIME", font=inter(9, 800),
+              fill=RED, anchor="ma")
 
 LEAD_ART = {1: lead_art_1, 2: lead_art_2, 4: lead_art_4}
 
@@ -736,8 +785,18 @@ def draw_lead(draw, img, lead, x, y0):
         # region-coloured top rule as the other leads (N. America
         # green, 3px at the very top, over the navy) — the navy band
         # is the card's identifier, the green rule is its region
-        # marker, matching cards 1, 2 and 4. "-3.7%" stays 44px white
-        # on navy — still the boldest element on the page.
+        # marker, matching cards 1, 2 and 4.
+        # ART (rebuild 2026-11-21): TWO focal elements only, side by
+        # side, filling the full band width — the huge white "-3.7%"
+        # on the left, and a steep falling red chart with a big
+        # arrowhead on the right. The fall reads at a glance, with
+        # or without the headline. Measured: "-3.7%" at merr 44 is
+        # 129px wide (x+10..x+139), so the chart zone starts at
+        # x+148 with a clear gap. Removed from the previous art:
+        # the orange Nasdaq line, the white dots along the line,
+        # and the CORRECTION tag — the tag duplicated the headline
+        # ("slides into correction") and had no clean spot once the
+        # chart fills the top-right corner.
         draw.rectangle([x, y0, x + w, y0 + 240], fill=PANEL,
                        outline=PANEL_BORDER)
         draw.rectangle([x, y0, x + w, y0 + 80], fill=NAVY2)
@@ -746,37 +805,24 @@ def draw_lead(draw, img, lead, x, y0):
                   fill=(255, 255, 255), anchor="ls")
         draw.text((x + 10, y0 + 70), "S&P 500 · 6,910",
                   font=inter(13, 700), fill=ANCHOR_YELLOW, anchor="ls")
-        # CHART (illustration rebuild 2026-11-21): faint gridlines,
-        # a bold red falling line with the area beneath it filled
-        # dark red, a steeper orange Nasdaq line (-5.3% in the dek),
-        # a red arrowhead at the S&P line's end — the fall, not just
-        # the number, is the art.
-        for gy in (20, 40, 60):
-            draw.line([(x + 148, y0 + gy), (x + 240, y0 + gy)],
+        # CHART: two faint gridlines only, a dark-red area under a
+        # thick steep red falling line, one white dot marking the
+        # high at the start, and a large arrowhead at the end.
+        for gy in (30, 52):
+            draw.line([(x + 144, y0 + gy), (x + 240, y0 + gy)],
                       fill=(55, 70, 115), width=1)
-        sp = [(x + 150, y0 + 12), (x + 176, y0 + 26),
-              (x + 204, y0 + 46), (x + 228, y0 + 64)]
-        draw.polygon(sp + [(x + 228, y0 + 74), (x + 150, y0 + 74)],
+        sp = [(x + 148, y0 + 12), (x + 174, y0 + 28),
+              (x + 200, y0 + 46), (x + 226, y0 + 64)]
+        draw.polygon(sp + [(x + 226, y0 + 74), (x + 148, y0 + 74)],
                      fill=(140, 40, 60))
-        draw.line([(x + 150, y0 + 16), (x + 178, y0 + 30),
-                   (x + 206, y0 + 42), (x + 234, y0 + 64)],
-                  fill=(255, 150, 40), width=2, joint="curve")
-        draw.line(sp, fill=ANCHOR_RED, width=3, joint="curve")
-        draw.polygon([(x + 232, y0 + 68), (x + 220, y0 + 61),
-                      (x + 223, y0 + 70)], fill=ANCHOR_RED)
-        for px, py in sp[1:]:
-            draw.ellipse([px - 3, py - 3, px + 3, py + 3],
-                         fill=(255, 255, 255))
-        tag = "CORRECTION"
-        tag_font = inter(9, 800)
-        tag_w = tag_font.getlength(tag) + 10
-        draw.rectangle([x + w - tag_w - 6, y0 + 6,
-                        x + w - 6, y0 + 20], fill=(200, 40, 30))
-        draw.text((x + w - 6 - tag_w / 2, y0 + 13), tag, font=tag_font,
-                  fill=(255, 255, 255), anchor="mm")
+        draw.line(sp, fill=ANCHOR_RED, width=5, joint="curve")
+        draw.ellipse([x + 144, y0 + 8, x + 152, y0 + 16],
+                     fill=(255, 255, 255))
+        draw.polygon([(x + 235, y0 + 70), (x + 222, y0 + 70),
+                      (x + 230, y0 + 58)], fill=ANCHOR_RED)
         kick_fill, kick_num = region, (255, 255, 255)
         kick_colour, head_colour, dek_colour = region, INK, DEK
-        src_colour = MUTED
+        src_colour = SOURCE
     else:
         draw.rectangle([x, y0, x + w, y0 + 240], fill=PANEL,
                        outline=PANEL_BORDER)
@@ -784,7 +830,7 @@ def draw_lead(draw, img, lead, x, y0):
         draw.rectangle([x, y0, x + w, y0 + 3], fill=region)
         kick_fill, kick_num = region, (255, 255, 255)
         kick_colour, head_colour, dek_colour = region, INK, DEK
-        src_colour = MUTED
+        src_colour = SOURCE
     cy = y0 + 90
     number_circle(draw, x + 8 + 6.5, cy, 13, kick_fill, lead["id"], 9,
                   text_fill=kick_num)
@@ -804,7 +850,7 @@ def draw_lead(draw, img, lead, x, y0):
         ty += dek_font.size + 2.5
     badge(draw, x + 8, y0 + 227, lead["status"], 12, 9)
     draw.text((x + w - 8, y0 + 238), lead["source"].upper(),
-              font=inter(9.5, 700), fill=src_colour, anchor="rs")
+              font=arch(9.5, 700, 80), fill=src_colour, anchor="rs")
 
 
 # ------------------------------------------------------ medium illustrations
@@ -816,346 +862,454 @@ def draw_lead(draw, img, lead, x, y0):
 # dek; "1 IN 12" appears in no source for this story.
 
 def card_art_5(draw, x, y0):
-    """UK-EU — BEFORE: small flags, a thin teal link, a modest "3"
-    in a circle. AFTER: BIGGER flags (32x20), a THICK teal bridge
-    (4px) joining them, and a LARGE red "3" seal (r=13, 18px) that
-    overlaps the bridge like a wax seal, "DEALS" beneath. First
-    glance: UK + EU + 3 deals."""
-    draw.rectangle([x, y0, x + 160, y0 + 46], fill=(226, 232, 240))
-    draw.line([x + 6, y0 + 6, x + 6, y0 + 40], fill=(90, 85, 75), width=2)
-    draw.line([x + 154, y0 + 6, x + 154, y0 + 40], fill=(90, 85, 75),
-              width=2)
-    draw.paste(_flag_image("GB", 32, 20), (x + 8, y0 + 8))
-    _flag_outline(draw, x + 8, y0 + 8, "GB", 32, 20)
-    draw.rectangle([x + 122, y0 + 8, x + 152, y0 + 28],
+    """UK-EU — BEFORE: 32x20 flags, a 4px teal link, a modest red
+    "3" seal (r=13) and a small "DEALS" label. AFTER: BIGGER flags
+    (40x20, filling the full band height), a THICKER 6px teal
+    bridge joining them, and a LARGER red "3" seal (r=14, 20px
+    "3") sitting on the bridge like a wax seal, with a bold
+    "3 DEALS" caption underneath — inside the band, in the free
+    strip below the seal. First glance: UK + EU + 3 deals."""
+    draw.rectangle([x, y0, x + 160, y0 + 46], fill=(214, 226, 240))
+    # UK flag, left — real flag, 40x20, top of the band.
+    draw.paste(_flag_image("GB", 40, 20), (x + 3, y0 + 5))
+    _flag_outline(draw, x + 3, y0 + 5, "GB", 40, 20)
+    # EU flag, right — drawn by hand (no eu.png in assets):
+    # blue field with a circle of 12 gold stars.
+    draw.rectangle([x + 117, y0 + 5, x + 157, y0 + 25],
                    fill=(0, 51, 153))
     for i in range(12):
         a = 2 * math.pi * i / 12
-        draw.ellipse([x + 137 + 10 * math.cos(a) - 1,
-                      y0 + 18 + 7 * math.sin(a) - 1,
-                      x + 137 + 10 * math.cos(a) + 1,
-                      y0 + 18 + 7 * math.sin(a) + 1],
+        sx = x + 137 + 12 * math.cos(a)
+        sy = y0 + 15 + 7 * math.sin(a)
+        draw.ellipse([sx - 1.2, sy - 1.2, sx + 1.2, sy + 1.2],
                      fill=(255, 204, 0))
-    draw.line([x + 42, y0 + 20, x + 120, y0 + 20], fill=(14, 124, 123),
-              width=4)
-    draw.ellipse([x + 67, y0 + 7, x + 93, y0 + 33], fill=RED,
+    draw.rectangle([x + 117, y0 + 5, x + 157, y0 + 25],
+                   outline=(180, 175, 165))
+    # THICK teal bridge joining the two flags, mid-flag height.
+    draw.rectangle([x + 43, y0 + 12, x + 117, y0 + 18],
+                   fill=(14, 124, 123))
+    # LARGE red "3" seal overlapping the bridge, centre of the band.
+    draw.ellipse([x + 66, y0 + 1, x + 94, y0 + 29], fill=RED,
                  outline=(255, 255, 255), width=2)
-    draw.text((x + 80, y0 + 20), "3", font=inter(18, 800), fill=(255, 255, 255),
-              anchor="mm")
-    draw.text((x + 80, y0 + 41), "DEALS", font=inter(7, 800), fill=INK,
-              anchor="ma")
-
+    draw.text((x + 80, y0 + 15), "3", font=inter(20, 800),
+              fill=(255, 255, 255), anchor="mm")
+    # Bold caption in the free strip below the seal (seal ends
+    # y0+29): top at y0+34, ~9px tall, so it ends ~y0+43, fully
+    # inside the band (ends y0+46).
+    draw.text((x + 80, y0 + 34), "3 DEALS", font=inter(9, 800),
+              fill=INK, anchor="ma")
 
 def card_art_6(draw, x, y0):
-    """UN chief race — BEFORE: a thin assembly arc, a small ballot
-    box with a small X, a "9TH VOTE" chip. AFTER: NINE ballot
-    slips in a row along the bottom — the first eight plain, the
-    NINTH one crossed out with a big red X — the ninth vote was
-    vetoed. The arc stays as a backdrop, the "9TH VOTE" chip
-    stays top-right. First glance: nine votes, the ninth vetoed."""
-    draw.rectangle([x, y0, x + 160, y0 + 46], fill=(238, 236, 228))
-    draw.arc([x + 20, y0 + 2, x + 92, y0 + 24], 180, 360,
-             fill=(150, 110, 70), width=4)
-    for i in range(9):
-        a = math.pi + math.pi * i / 8
-        sx, sy = x + 56 + 36 * math.cos(a), y0 + 13 + 11 * math.sin(a)
-        draw.ellipse([sx - 2, sy - 2, sx + 2, sy + 2], fill=(60, 50, 40))
-    draw.rectangle([x + 100, y0 + 4, x + 156, y0 + 18], fill=RED)
-    draw.text((x + 128, y0 + 11), "9TH VOTE", font=inter(9, 800),
+    """UN chief race — stalled after the ninth vote. A BIG white
+    ballot box (focal, ~60% of the band) on a UN-blue field, a
+    huge navy "9" on its front, a ballot slip sticking out of
+    the slot — and a LARGE red veto circle with a bold white X
+    and a small VETO label at right. First glance: ninth vote,
+    vetoed / blocked."""
+    UN_BLUE = (0, 91, 172)
+    draw.rectangle([x, y0, x + 160, y0 + 46], fill=UN_BLUE)
+    # Ballot slip sticking out of the slot.
+    draw.rectangle([x + 46, y0 + 1, x + 58, y0 + 12],
+                   fill=(255, 255, 255), outline=NAVY)
+    # Ballot-box lid (two segments, gap in the middle = the slot).
+    draw.rectangle([x + 2, y0 + 8, x + 44, y0 + 14], fill=NAVY)
+    draw.rectangle([x + 60, y0 + 8, x + 98, y0 + 14], fill=NAVY)
+    # Ballot-box body.
+    draw.rectangle([x + 6, y0 + 14, x + 94, y0 + 44],
+                   fill=(255, 255, 255), outline=NAVY, width=2)
+    # Huge "9" — the ninth vote — on the box front.
+    draw.text((x + 50, y0 + 31), "9", font=inter(24, 800), fill=NAVY,
+              anchor="mm")
+    # Veto: big red circle with a bold white X.
+    draw.ellipse([x + 108, y0 + 4, x + 146, y0 + 42], fill=RED,
+                 outline=(255, 255, 255), width=2)
+    draw.line([x + 118, y0 + 11, x + 136, y0 + 29],
+              fill=(255, 255, 255), width=4)
+    draw.line([x + 136, y0 + 11, x + 118, y0 + 29],
+              fill=(255, 255, 255), width=4)
+    draw.text((x + 127, y0 + 36), "VETO", font=inter(6, 800),
               fill=(255, 255, 255), anchor="mm")
-    for i in range(9):
-        sx = x + 6 + i * 17
-        draw.rectangle([sx, y0 + 24, sx + 15, y0 + 42],
-                       fill=(255, 255, 255), outline=(120, 115, 105))
-        draw.line([sx + 3, y0 + 30, sx + 12, y0 + 30],
-                  fill=(150, 145, 135), width=1)
-        draw.line([sx + 3, y0 + 35, sx + 12, y0 + 35],
-                  fill=(150, 145, 135), width=1)
-    # The ninth slip (rightmost) is crossed out in red.
-    sx = x + 6 + 8 * 17
-    draw.line([sx + 2, y0 + 26, sx + 13, y0 + 40], fill=RED, width=3)
-    draw.line([sx + 13, y0 + 26, sx + 2, y0 + 40], fill=RED, width=3)
-
 
 def card_art_7(draw, x, y0):
-    """Iran war — BEFORE: a small calendar with a 22px "9", a small
-    tanker, plain red "UNTIL 2027" text. AFTER: a LARGE calendar
-    page (60x38) with a HUGE "9" (30px), a bigger tanker on a
-    wider sea band, and "UNTIL 2027" as a bold red chip with
-    white text. First glance: month 9, no decision until 2027."""
-    draw.rectangle([x, y0, x + 160, y0 + 46], fill=(210, 226, 238))
-    draw.rectangle([x + 4, y0 + 4, x + 64, y0 + 42], fill=(255, 255, 255),
-                   outline=(90, 85, 75))
-    draw.rectangle([x + 4, y0 + 4, x + 64, y0 + 14], fill=RED)
-    draw.text((x + 34, y0 + 9), "MONTH", font=inter(8, 800),
-              fill=(255, 255, 255), anchor="mm")
-    draw.text((x + 34, y0 + 30), "9", font=inter(30, 800), fill=NAVY,
+    """Iran war, ninth month, no decision until 2027 — AFTER: one
+    GIANT clock fills the left half of the band (r=21, face 42px
+    tall in a 46px band), its hands set to 9 o'clock, with a HUGE
+    navy "9" (20px) at the centre of the face — month nine, time
+    dragging on. Right side: a bold red "UNTIL 2027" chip, and
+    beneath it a red pause glyph + "NO RUSH" — the decision is
+    on hold. First glance: a clock stuck on 9, nothing decided
+    until 2027."""
+    draw.rectangle([x, y0, x + 160, y0 + 46], fill=(233, 229, 218))
+    # --- Giant clock (dominant focal, left half) ---
+    cx, cy, r = x + 34, y0 + 23, 21
+    draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(255, 255, 255),
+                 outline=INK, width=3)
+    # Tick marks at 12 / 3 / 6 / 9.
+    draw.line([cx, cy - r + 3, cx, cy - r + 7], fill=INK, width=2)
+    draw.line([cx + r - 3, cy, cx + r - 7, cy], fill=INK, width=2)
+    draw.line([cx, cy + r - 3, cx, cy + r - 7], fill=INK, width=2)
+    draw.line([cx - r + 3, cy, cx - r + 7, cy], fill=INK, width=2)
+    # Hands: hour hand to 9 o'clock (left), minute hand to 12 (up).
+    # Drawn BEFORE the "9" so the digit sits on top of their bases.
+    draw.line([cx, cy, cx - r + 5, cy], fill=INK, width=3)
+    draw.line([cx, cy, cx, cy - r + 5], fill=INK, width=3)
+    draw.text((cx, cy + 1), "9", font=inter(20, 800), fill=NAVY2,
               anchor="mm")
-    draw.rectangle([x + 68, y0 + 28, x + 160, y0 + 46], fill=(36, 70, 110))
-    draw.polygon([(x + 86, y0 + 30), (x + 140, y0 + 30), (x + 134, y0 + 38),
-                  (x + 86, y0 + 38)], fill=(30, 30, 35))
-    draw.rectangle([x + 100, y0 + 24, x + 116, y0 + 30], fill=(30, 30, 35))
-    star(draw, x + 94, y0 + 20, 7, 3, (255, 150, 40))
-    draw.rectangle([x + 104, y0 + 6, x + 156, y0 + 18], fill=RED)
-    draw.text((x + 130, y0 + 12), "UNTIL 2027", font=inter(8, 800),
+    # --- "UNTIL 2027" chip (top right) ---
+    draw.rectangle([x + 62, y0 + 7, x + 156, y0 + 25], fill=RED)
+    draw.text((x + 109, y0 + 16), "UNTIL 2027", font=inter(11, 800),
               fill=(255, 255, 255), anchor="mm")
-
+    # --- Pause glyph + "NO RUSH" (bottom right, the wait) ---
+    draw.rectangle([x + 70, y0 + 32, x + 75, y0 + 42], fill=RED)
+    draw.rectangle([x + 78, y0 + 32, x + 83, y0 + 42], fill=RED)
+    draw.text((x + 88, y0 + 37), "NO RUSH", font=inter(9, 800),
+              fill=INK, anchor="lm")
 
 def card_art_8(draw, x, y0):
-    """Hodeidah — BEFORE: a small burst, thin cranes, three red x
-    marks (the dek says FIVE drones were intercepted). AFTER: a
-    dusk sky, a HUGE layered burst (r=18) as the hero, thicker
-    crane silhouettes, a bigger ship, and FIVE red x marks — one
-    per intercepted drone. First glance: an explosion at a port."""
-    draw.rectangle([x, y0, x + 160, y0 + 30], fill=(235, 190, 130))
-    draw.rectangle([x, y0 + 30, x + 160, y0 + 46], fill=(40, 70, 110))
-    for ang in range(0, 360, 30):
-        a = math.radians(ang)
-        draw.line([x + 52 + 20 * math.cos(a), y0 + 20 + 20 * math.sin(a),
-                   x + 52 + 26 * math.cos(a), y0 + 20 + 26 * math.sin(a)],
-                  fill=(255, 150, 40), width=2)
-    star(draw, x + 52, y0 + 20, 18, 5, (255, 190, 40))
-    star(draw, x + 52, y0 + 20, 12, 4, (255, 120, 40))
-    star(draw, x + 52, y0 + 20, 7, 2, RED)
-    for cx in (96, 140):
-        draw.line([x + cx, y0 + 4, x + cx, y0 + 30], fill=(40, 35, 30),
+    """Hodeidah port strike — a BIG cargo ship fills the whole band
+    (hull x+6..x+154, containers flanking a central explosion), ONE
+    huge layered burst (r=16) erupting from the middle of the ship,
+    one crane silhouette at each end for the port, and a small drone
+    silhouette top-right struck through with a red x (intercepted).
+    First glance: a ship exploding at a port."""
+    # Dusk sky over the sea.
+    draw.rectangle([x, y0, x + 160, y0 + 30], fill=(240, 175, 110))
+    draw.rectangle([x, y0 + 30, x + 160, y0 + 46], fill=(35, 65, 105))
+    # Two crane silhouettes, one at each end of the port.
+    for cx, jib in [(12, (6, 36)), (148, (138, 156))]:
+        draw.line([x + cx, y0 + 8, x + cx, y0 + 30], fill=(45, 38, 32),
                   width=3)
-        draw.line([x + cx - 6, y0 + 8, x + cx + 16, y0 + 8],
-                  fill=(40, 35, 30), width=2)
-        draw.line([x + cx, y0 + 4, x + cx + 16, y0 + 8],
-                  fill=(40, 35, 30), width=1)
-        draw.line([x + cx + 12, y0 + 8, x + cx + 12, y0 + 20],
-                  fill=(40, 35, 30), width=1)
-        draw.rectangle([x + cx + 10, y0 + 20, x + cx + 14, y0 + 23],
-                       fill=(40, 35, 30))
-    draw.polygon([(x + 92, y0 + 32), (x + 146, y0 + 32), (x + 140, y0 + 42),
-                  (x + 92, y0 + 42)], fill=(20, 25, 35))
-    draw.rectangle([x + 102, y0 + 26, x + 116, y0 + 32], fill=(20, 25, 35))
-    draw.rectangle([x + 122, y0 + 27, x + 134, y0 + 32], fill=RED)
-    # Five intercepted drones: five red x marks.
-    for dx, dy in [(18, 8), (78, 6), (118, 8), (130, 6), (152, 18)]:
-        draw.text((x + dx, y0 + dy), "×", font=inter(9, 800), fill=RED,
-                  anchor="mm")
-
+        draw.line([x + jib[0], y0 + 10, x + jib[1], y0 + 10],
+                  fill=(45, 38, 32), width=2)
+        draw.line([x + cx, y0 + 8, x + jib[1], y0 + 10],
+                  fill=(45, 38, 32), width=1)
+    # The cargo ship: wide dark hull with a red waterline.
+    draw.polygon([(x + 6, y0 + 30), (x + 154, y0 + 30), (x + 148, y0 + 42),
+                  (x + 12, y0 + 42)], fill=(18, 22, 32))
+    draw.rectangle([x + 10, y0 + 38, x + 150, y0 + 40], fill=RED)
+    # Container stacks flanking the explosion, two high each.
+    draw.rectangle([x + 18, y0 + 24, x + 52, y0 + 30], fill=(200, 60, 40))
+    draw.rectangle([x + 22, y0 + 18, x + 48, y0 + 24], fill=(40, 120, 130))
+    draw.rectangle([x + 108, y0 + 24, x + 142, y0 + 30],
+                   fill=(220, 150, 40))
+    draw.rectangle([x + 112, y0 + 18, x + 138, y0 + 24],
+                   fill=(50, 90, 150))
+    # ONE huge explosion burst erupting from the middle of the ship.
+    star(draw, x + 80, y0 + 16, 16, 5, (255, 150, 40))
+    star(draw, x + 80, y0 + 16, 11, 4, (255, 200, 60))
+    star(draw, x + 80, y0 + 16, 6, 2, RED)
+    # One intercepted drone, top-right, struck through with a red x.
+    draw.line([x + 128, y0 + 5, x + 144, y0 + 5], fill=(20, 20, 25),
+              width=1)
+    draw.rectangle([x + 131, y0 + 6, x + 141, y0 + 9], fill=(20, 20, 25))
+    draw.line([x + 129, y0 + 3, x + 143, y0 + 11], fill=RED, width=2)
+    draw.line([x + 143, y0 + 3, x + 129, y0 + 11], fill=RED, width=2)
 
 def card_art_9(draw, x, y0):
-    """Peru quake — BEFORE: a thin red seismograph trace, a 20px
-    "6.7", flat Andes. AFTER: a THICK red trace (width 4) with a
-    HUGE central spike that nearly touches the top of the band,
-    bolder Andes, and "6.7" at 24px — the spike IS the story.
-    The dark "SAT 00:09 UTC" chip is kept exactly (user order)."""
+    """Peru quake — HUGE bold red "6.7" (36px, ~78% of the band
+    height) as the dominant focal on the left: the magnitude IS the
+    story. One thick red seismograph trace on the right with a HUGE
+    central spike nearly touching the top of the band, and two
+    simple Andes triangles along the bottom-right. A dark
+    "FRI 19:09 LOCAL" chip top-right (user order, 2026-11-21):
+    the quake's Friday local time, so no Saturday appears anywhere
+    on the card — the old "SAT 00:09 UTC" chip is gone and the
+    Date Check EDGE line naming Sat 21 Nov is deleted too.
+    First glance: a 6.7 earthquake."""
     draw.rectangle([x, y0, x + 160, y0 + 46], fill=(240, 236, 224))
-    for bx, bw, bh in [(4, 56, 14), (56, 54, 18), (106, 50, 12)]:
-        draw.polygon([(x + bx, y0 + 46), (x + bx + bw / 2, y0 + 46 - bh),
-                      (x + bx + bw, y0 + 46)], fill=(150, 110, 70))
-    # The trace starts right of the 6.7, so it never crosses the
-    # number; the peak (x+76, y0+4) stays left of the SAT chip
-    # (x+87..x+154, y0+6..y0+18) and the descent clears its bottom.
-    pts = [(x + 54, y0 + 30), (x + 66, y0 + 24),
-           (x + 76, y0 + 4), (x + 88, y0 + 28),
-           (x + 102, y0 + 20), (x + 124, y0 + 24), (x + 154, y0 + 24)]
+    # Andes: two simple triangles along the bottom-right, behind
+    # the trace, low so they never fight the "6.7".
+    draw.polygon([(x + 70, y0 + 46), (x + 100, y0 + 34),
+                  (x + 130, y0 + 46)], fill=(150, 110, 70))
+    draw.polygon([(x + 114, y0 + 46), (x + 138, y0 + 36),
+                  (x + 160, y0 + 46)], fill=(120, 85, 55))
+    # Seismograph trace: thick red, one huge central spike that
+    # nearly touches the top of the band. Starts right of the
+    # "6.7" so it never crosses the number.
+    pts = [(x + 70, y0 + 26), (x + 82, y0 + 22),
+           (x + 90, y0 + 4), (x + 98, y0 + 30),
+           (x + 108, y0 + 18), (x + 118, y0 + 26),
+           (x + 130, y0 + 22), (x + 152, y0 + 22)]
     draw.line(pts, fill=RED, width=4, joint="curve")
-    draw.text((x + 8, y0 + 4), "6.7", font=merr(24, 900), fill=RED,
+    # The magnitude, huge and bold, filling most of the band.
+    draw.text((x + 4, y0 + 3), "6.7", font=merr(36, 900), fill=RED,
               anchor="la")
-    # UTC-DATE TAG (2026-11-21, option (b) MARKING): the quake was
-    # 19:09 local Fri 20 Nov = 00:09 UTC Sat 21 Nov, but this paper
-    # is Friday 20 Nov and the timeline is "THE DAY IN UTC" — so the
-    # Saturday-UTC timing is marked visibly and deliberately on the
-    # card itself (the Date Check EDGE item explains it too).
-    draw.rectangle([x + 87, y0 + 6, x + 154, y0 + 18], fill=INK)
-    draw.text((x + 120.5, y0 + 12), "SAT 00:09 UTC", font=inter(7.5, 800),
-              fill=(255, 255, 255), anchor="mm")
-
+    # FRI chip (user order, 2026-11-21): dark chip top-right with
+    # the quake's Friday local time in white. Placed x+96..x+158,
+    # y0+3..y0+14 — right of the trace spike (x+90) and above the
+    # trace's right run (top y0+18 at x+108), so it never covers
+    # the spike, the trace, or the "6.7".
+    draw.rectangle([x + 96, y0 + 3, x + 158, y0 + 14], fill=INK)
+    draw.text((x + 127, y0 + 8.5), "FRI 19:09 LOCAL",
+              font=inter(7, 800), fill=(255, 255, 255), anchor="mm")
 
 def card_art_10(img, draw, x, y0):
-    """Palisades Fire — BEFORE: a modest gradient, small flames, a
-    small 9px GUILTY stamp. AFTER: a darker smoky sky, TALLER
-    flames (up to 30px) licking from a bigger house, and a LARGE
-    white-backed GUILTY stamp (12px) as the verdict, front and
-    centre. First glance: a fire, and a guilty verdict."""
-    for row in range(46 * SS):
-        t = row / (46 * SS - 1)
-        r = int(160 + (235 - 160) * t)
-        g = int(50 + (150 - 50) * t)
-        b = int(30 + (50 - 30) * t)
-        draw.line([x, y0 + row / SS, x + 160, y0 + row / SS],
-                  fill=(r, g, b))
-    draw.polygon([(x, y0 + 46), (x, y0 + 30), (x + 60, y0 + 22),
-                  (x + 120, y0 + 32), (x + 160, y0 + 26), (x + 160, y0 + 46)],
-                 fill=(40, 25, 20))
-    draw.rectangle([x + 98, y0 + 28, x + 120, y0 + 38], fill=(30, 20, 15))
-    draw.polygon([(x + 96, y0 + 28), (x + 122, y0 + 28), (x + 109, y0 + 16)],
-                 fill=(30, 20, 15))
-    for fx, fh in [(102, 30), (116, 26), (130, 22), (146, 16), (88, 18)]:
-        draw.polygon([(x + fx - 7, y0 + 36), (x + fx, y0 + 36 - fh),
-                      (x + fx + 7, y0 + 36)], fill=(255, 170, 40))
-        draw.polygon([(x + fx - 3, y0 + 36), (x + fx, y0 + 36 - fh + 10),
-                      (x + fx + 3, y0 + 36)], fill=(255, 220, 80))
-    draw.rectangle([x + 8, y0 + 30, x + 22, y0 + 36], fill=(90, 60, 40))
-    draw.line([x + 15, y0 + 30, x + 15, y0 + 22], fill=(90, 60, 40), width=3)
-    stamp(img, x + 48, y0 + 20, "GUILTY", inter(12, 800), RED, -10,
+    """Palisades Fire — BEFORE: a gradient sky, hills, a small
+    house, five small flames, and a small 12px GUILTY stamp.
+    AFTER: stripped to two elements only — a WALL of tall layered
+    flames filling the whole band, and one LARGE white-backed
+    GUILTY stamp (15px) front and centre. First glance: a
+    wildfire, and a guilty verdict."""
+    # Dark smoky background: maximum contrast for the flames and
+    # the white stamp.
+    draw.rectangle([x, y0, x + 160, y0 + 46], fill=(30, 17, 12))
+    # Three big overlapping flame tongues (outer red-orange, mid
+    # orange, inner yellow core). Tips reach y0+2..y0+7 so fire
+    # peaks above the stamp; bases fill the bottom of the band.
+    # Left flame.
+    draw.polygon([(x + 15, y0 + 46), (x + 14, y0 + 32), (x + 20, y0 + 20),
+                  (x + 27, y0 + 10), (x + 32, y0 + 5), (x + 38, y0 + 14),
+                  (x + 44, y0 + 24), (x + 52, y0 + 34), (x + 51, y0 + 46)],
+                 fill=(230, 80, 20))
+    draw.polygon([(x + 21, y0 + 46), (x + 20, y0 + 34), (x + 25, y0 + 24),
+                  (x + 29, y0 + 16), (x + 32, y0 + 12), (x + 36, y0 + 20),
+                  (x + 41, y0 + 30), (x + 43, y0 + 46)],
+                 fill=(255, 150, 30))
+    draw.polygon([(x + 26, y0 + 46), (x + 27, y0 + 36), (x + 30, y0 + 28),
+                  (x + 32, y0 + 24), (x + 35, y0 + 30), (x + 37, y0 + 38),
+                  (x + 37, y0 + 46)], fill=(255, 215, 70))
+    # Centre flame — the tallest, tip at y0+2.
+    draw.polygon([(x + 58, y0 + 46), (x + 57, y0 + 30), (x + 67, y0 + 18),
+                  (x + 74, y0 + 8), (x + 80, y0 + 2), (x + 87, y0 + 12),
+                  (x + 93, y0 + 24), (x + 99, y0 + 34), (x + 99, y0 + 46)],
+                 fill=(230, 80, 20))
+    draw.polygon([(x + 68, y0 + 46), (x + 68, y0 + 32), (x + 73, y0 + 22),
+                  (x + 77, y0 + 14), (x + 80, y0 + 10), (x + 84, y0 + 18),
+                  (x + 89, y0 + 28), (x + 91, y0 + 46)],
+                 fill=(255, 150, 30))
+    draw.polygon([(x + 74, y0 + 46), (x + 74, y0 + 36), (x + 77, y0 + 27),
+                  (x + 80, y0 + 22), (x + 83, y0 + 29), (x + 85, y0 + 38),
+                  (x + 85, y0 + 46)], fill=(255, 215, 70))
+    # Right flame.
+    draw.polygon([(x + 108, y0 + 46), (x + 107, y0 + 32), (x + 117, y0 + 21),
+                  (x + 123, y0 + 11), (x + 128, y0 + 7), (x + 134, y0 + 15),
+                  (x + 140, y0 + 25), (x + 145, y0 + 34), (x + 144, y0 + 46)],
+                 fill=(230, 80, 20))
+    draw.polygon([(x + 118, y0 + 46), (x + 118, y0 + 34), (x + 122, y0 + 25),
+                  (x + 126, y0 + 17), (x + 128, y0 + 14), (x + 132, y0 + 21),
+                  (x + 137, y0 + 31), (x + 139, y0 + 46)],
+                 fill=(255, 150, 30))
+    draw.polygon([(x + 122, y0 + 46), (x + 123, y0 + 37), (x + 126, y0 + 29),
+                  (x + 128, y0 + 25), (x + 131, y0 + 31), (x + 133, y0 + 39),
+                  (x + 133, y0 + 46)], fill=(255, 215, 70))
+    # The verdict: one LARGE white-backed GUILTY stamp, front and
+    # centre, over the flames.
+    stamp(img, x + 80, y0 + 23, "GUILTY", inter(15, 800), RED, -8,
           fill=(255, 255, 255))
-
 
 def card_art_11(img, draw, x, y0):
-    """Pill vs pancreatic cancer — BEFORE: a 56x20 capsule, small
-    tumours, a thin check. AFTER: a BIGGER capsule (70x24) as the
-    hero, and a clearer shrinking sequence — a big red tumour,
-    a medium orange one, a tiny pale one, small chevrons between
-    them, then a BIG thick green check. First glance: a pill that
-    shrinks tumours; 61 PATIENTS from the dek."""
+    """Pill vs pancreatic cancer — REBUILT: one HUGE flat capsule
+    (120x26, teal left half / white right half, thick dark-teal
+    outline) fills ~75% of the band, with a single vivid-green
+    check badge at the right as the "it works" cue. No text, no
+    tumours, no rotation — the pill alone is the story, instantly
+    readable at a glance. First glance: a pill that works."""
     draw.rectangle([x, y0, x + 160, y0 + 46], fill=(238, 244, 240))
-    draw.text((x + 6, y0 + 6), "61 PATIENTS", font=inter(9, 800),
-              fill=(14, 124, 123), anchor="la")
-    # Tumours shrink left to right along the bottom, with chevrons
-    # between them, then a big thick green check.
-    for cx, r, col in [(26, 10, (200, 60, 50)),
-                       (58, 7, (230, 130, 40)),
-                       (86, 4, (240, 210, 180))]:
-        draw.ellipse([x + cx - r, y0 + 38 - r, x + cx + r, y0 + 38 + r],
-                     fill=col)
-    for ax in (42, 72):
-        draw.line([x + ax, y0 + 35, x + ax + 4, y0 + 38], fill=(14, 124, 123),
-                  width=2)
-        draw.line([x + ax + 4, y0 + 38, x + ax, y0 + 41], fill=(14, 124, 123),
-                  width=2)
-    draw.line([x + 96, y0 + 37, x + 100, y0 + 41], fill=(14, 124, 123),
-              width=3)
-    draw.line([x + 100, y0 + 41, x + 108, y0 + 31], fill=(14, 124, 123),
-              width=3)
-    cap = Image.new("RGBA", (70 * SS, 24 * SS), (0, 0, 0, 0))
+    # Huge horizontal capsule, built as a tile so the two halves
+    # keep perfect rounded ends and a straight centre seam.
+    cap = Image.new("RGBA", (120 * SS, 26 * SS), (0, 0, 0, 0))
     cd = ImageDraw.Draw(cap)
-    cd.rounded_rectangle([0, 0, 70 * SS, 24 * SS], radius=12 * SS,
-                         fill=(255, 255, 255), outline=(180, 175, 165),
-                         width=SS)
-    cd.rounded_rectangle([35 * SS, 0, 70 * SS, 24 * SS], radius=12 * SS,
-                         fill=(14, 124, 123))
-    cap = cap.rotate(-25, expand=True, resample=Image.BICUBIC)
-    img.paste(cap, ((x + 76) * SS, (y0 + 2) * SS), cap)
-
+    # Left half: teal (rectangle + end cap).
+    cd.rectangle([13 * SS, 0, 60 * SS, 26 * SS], fill=(14, 124, 123))
+    cd.ellipse([0, 0, 26 * SS, 26 * SS], fill=(14, 124, 123))
+    # Right half: white (rectangle + end cap).
+    cd.rectangle([60 * SS, 0, 107 * SS, 26 * SS], fill=(255, 255, 255))
+    cd.ellipse([94 * SS, 0, 120 * SS, 26 * SS], fill=(255, 255, 255))
+    # Thick outline around the whole capsule, plus a thin seam.
+    cd.rounded_rectangle([0, 0, 120 * SS - 1, 26 * SS - 1],
+                         radius=13 * SS, outline=(10, 90, 90),
+                         width=2 * SS)
+    cd.line([60 * SS, 2 * SS, 60 * SS, 24 * SS], fill=(10, 90, 90),
+            width=SS)
+    img.paste(cap, ((x + 4) * SS, (y0 + 10) * SS), cap)
+    # Green check badge — the supporting "it works" cue.
+    draw.ellipse([x + 128, y0 + 9, x + 156, y0 + 37],
+                 fill=(22, 163, 74), outline=(255, 255, 255), width=2)
+    draw.line([x + 135, y0 + 23, x + 140, y0 + 28],
+              fill=(255, 255, 255), width=3)
+    draw.line([x + 140, y0 + 28, x + 150, y0 + 17],
+              fill=(255, 255, 255), width=3)
 
 def card_art_12(img, draw, x, y0):
-    """AI centres abroad — BEFORE: a small "$" bubble, a modest
-    server rack, an 11px TAX stamp. AFTER: a BIGGER "$" bubble
-    (20px $), a LARGER dark server rack with glowing gold LEDs
-    that dominates the right side, and a LARGE TAX stamp (13px)
-    across it. First glance: a tax on AI servers."""
-    draw.rectangle([x, y0, x + 160, y0 + 46], fill=(236, 232, 226))
-    draw.rectangle([x + 6, y0 + 12, x + 54, y0 + 40], fill=(255, 255, 255),
-                   outline=(120, 120, 120))
-    draw.polygon([(x + 20, y0 + 12), (x + 44, y0 + 12), (x + 32, y0 + 4)],
-                 fill=(255, 255, 255), outline=(120, 120, 120))
-    draw.text((x + 30, y0 + 26), "$", font=inter(20, 800), fill=RED,
-              anchor="mm")
-    draw.rectangle([x + 96, y0 + 6, x + 152, y0 + 44], fill=(30, 30, 40))
-    for px in (102, 112, 122, 132, 142, 150):
-        draw.line([x + px, y0 + 6, x + px, y0 + 10], fill=(212, 175, 55),
-                  width=2)
-        draw.line([x + px, y0 + 40, x + px, y0 + 44], fill=(212, 175, 55),
-                  width=2)
-    stamp(img, x + 124, y0 + 25, "TAX", inter(13, 800), RED, -10,
-          fill=(255, 255, 255))
-
-
-def card_art_13(draw, x, y0):
-    """Nvidia — BEFORE: a flat green chip, a thin red down-arrow,
-    a small "-14%" chip. AFTER: a BIGGER green chip and a HUGE
-    thick red down-arrow (8px shaft, large head) that pierces
-    it top to bottom — the arrow IS the story — with "-14%" in
-    a larger white chip. First glance: Nvidia plunging."""
+    """Merged Nvidia + AI-tax — Nvidia's chip driven down 14%, with a
+    tax (%) on AI. Light background (238,240,236) so the green chip
+    and red elements pop. Left: a Nvidia-green NVDA chip (66px wide,
+    70% of band height) with dark pins and a darker die. A thick red
+    down-arrow presses on the chip's right edge, its head driving
+    down to the band's lower edge. Beside the arrowhead, a large red
+    "-14%". Right: a small white disc with a red "%" — the tax cue.
+    First glance: Nvidia's chip is being driven down 14%, with a
+    tax (%) on AI."""
+    # Light background — green chip and red elements pop.
     draw.rectangle([x, y0, x + 160, y0 + 46], fill=(238, 240, 236))
-    draw.rectangle([x + 36, y0 + 6, x + 120, y0 + 40], fill=(118, 185, 0))
-    for px in (44, 56, 68, 80, 92, 104, 116):
+    # --- Nvidia-green chip, left (66 wide x 32 tall) ---
+    # Dark pins: top and bottom.
+    for px in (14, 26, 38, 50, 62):
         draw.line([x + px, y0 + 2, x + px, y0 + 6], fill=(60, 90, 0),
-                  width=2)
+                  width=3)
         draw.line([x + px, y0 + 40, x + px, y0 + 44], fill=(60, 90, 0),
-                  width=2)
-    draw.line([x + 78, y0 + 4, x + 78, y0 + 34], fill=RED, width=8)
-    draw.polygon([(x + 78, y0 + 44), (x + 66, y0 + 30), (x + 90, y0 + 30)],
-                 fill=RED)
-    draw.rectangle([x + 124, y0 + 4, x + 158, y0 + 22], fill=(255, 255, 255),
-                   outline=(90, 85, 75))
-    draw.text((x + 141, y0 + 13), "-14%", font=inter(13, 800), fill=RED,
-              anchor="mm")
-
-
-def card_art_14(draw, x, y0):
-    """Marcos / APEC — BEFORE: a small PH flag, a thin dashed arc,
-    a small plane, a modest "P41.1bn" chip. AFTER: a THICKER
-    dashed flight arc (3px), a bigger plane, and a LARGE navy
-    "P41.1bn" chip (72x16, 13px) — the pledges are the story —
-    with "7,000+ JOBS" beneath. First glance: P41.1bn flies home."""
-    draw.rectangle([x, y0, x + 160, y0 + 46], fill=(226, 234, 242))
-    draw.paste(_flag_image("PH", 26, 13), (x + 6, y0 + 6))
-    _flag_outline(draw, x + 6, y0 + 6, "PH", 26, 13)
-    pts = quad((x + 34, y0 + 30), (x + 80, y0 + 8), (x + 126, y0 + 24))
-    dashed_curve(draw, pts, (90, 85, 75), 3)
-    draw.polygon([(x + 118, y0 + 20), (x + 148, y0 + 24), (x + 118, y0 + 28),
-                  (x + 124, y0 + 24)], fill=(255, 255, 255),
-                 outline=(90, 85, 75))
-    draw.polygon([(x + 126, y0 + 22), (x + 142, y0 + 18), (x + 142, y0 + 22)],
-                 fill=(255, 255, 255), outline=(90, 85, 75))
-    draw.rectangle([x + 86, y0 + 28, x + 158, y0 + 44], fill=NAVY)
-    draw.text((x + 122, y0 + 36), "P41.1bn", font=inter(13, 800),
+                  width=3)
+    # Chip body with darker die and white "NVDA".
+    draw.rectangle([x + 4, y0 + 7, x + 70, y0 + 39], fill=(118, 185, 0),
+                   outline=(60, 90, 0), width=2)
+    draw.rectangle([x + 18, y0 + 14, x + 56, y0 + 32], fill=(60, 130, 0))
+    draw.text((x + 37, y0 + 23), "NVDA", font=inter(10, 800),
               fill=(255, 255, 255), anchor="mm")
-    draw.text((x + 8, y0 + 44), "7,000+ JOBS", font=inter(8, 800),
-              fill=(26, 110, 74), anchor="ls")
-
-
+    # --- Thick red down-arrow pressing on the chip's right edge ---
+    draw.rectangle([x + 72, y0 + 2, x + 84, y0 + 22], fill=RED)
+    draw.polygon([(x + 66, y0 + 22), (x + 90, y0 + 22),
+                  (x + 78, y0 + 40)], fill=RED)
+    # --- Large red "-14%" beside the arrowhead ---
+    draw.text((x + 105, y0 + 23), "-14%", font=inter(13, 800), fill=RED,
+              anchor="mm")
+    # --- Small white disc with red "%" — the tax cue, right ---
+    draw.ellipse([x + 123, y0 + 8, x + 155, y0 + 38],
+                 fill=(255, 255, 255), outline=RED, width=2)
+    draw.text((x + 139, y0 + 23), "%", font=inter(16, 800), fill=RED,
+              anchor="mm")
+def card_art_13(draw, x, y0):
+    """Phillips hits 118 vs India; first NZ century in all three
+    formats — a cricket scorecard. Dark cricket-green field, one
+    GIANT white "118" (38px, ~83% of the band height) as the
+    dominant focal on the left, a thin white divider, and on the
+    right "PHILLIPS" in bold white over a small red cricket ball
+    with white seams — the only supporting cue. First glance:
+    118 runs by Phillips."""
+    GREEN = (18, 77, 44)
+    draw.rectangle([x, y0, x + 160, y0 + 46], fill=GREEN)
+    # Giant score — the focal, left, vertically centred.
+    draw.text((x + 6, y0 + 23), "118", font=inter(38, 800),
+              fill=(255, 255, 255), anchor="lm")
+    # Thin white divider between score and name.
+    draw.rectangle([x + 70, y0 + 6, x + 71, y0 + 40],
+                   fill=(255, 255, 255))
+    # Name, bold white, top right.
+    draw.text((x + 116, y0 + 14), "PHILLIPS", font=inter(12, 800),
+              fill=(255, 255, 255), anchor="mm")
+    # Small red cricket ball, bottom right, with white seams.
+    cx, cy, r = x + 116, y0 + 33, 10
+    draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=RED,
+                 outline=(255, 255, 255), width=1)
+    draw.arc([cx - r, cy - r, cx + r, cy + r], 115, 245,
+             fill=(255, 255, 255), width=1)
+    draw.arc([cx - r, cy - r, cx + r, cy + r], 295, 65,
+             fill=(255, 255, 255), width=1)
+def card_art_14(draw, x, y0):
+    """Cyclone Akvan — big spiral over a dark storm sea, green/tan
+    coastline along the bottom, diagonal rain top-right.
+    First glance: a cyclone hitting the coast."""
+    # Dark storm-blue field.
+    draw.rectangle([x, y0, x + 160, y0 + 46], fill=NAVY2)
+    # --- Dominant focal: the spiral, centre-left ---
+    # Outer ring 32px tall (r=16, ~70% of the 46px band), centred
+    # at (x+52, y0+20) so it spans y0+4..y0+36 and touches the
+    # coastline below. Each ring is an arc with a staggered gap,
+    # so the gaps step round the swirl like a rotating storm.
+    cx, cy = x + 52, y0 + 20
+    draw.arc([cx - 16, cy - 16, cx + 16, cy + 16], 15, 285,
+             fill=(255, 255, 255), width=3)
+    draw.arc([cx - 12, cy - 12, cx + 12, cy + 12], 105, 15,
+             fill=(185, 215, 240), width=3)
+    draw.arc([cx - 8, cy - 8, cx + 8, cy + 8], 195, 105,
+             fill=(255, 255, 255), width=2)
+    draw.arc([cx - 4, cy - 4, cx + 4, cy + 4], 285, 195,
+             fill=(185, 215, 240), width=2)
+    # Calm eye at the centre.
+    draw.ellipse([cx - 2, cy - 2, cx + 2, cy + 2],
+                 fill=(255, 255, 255))
+    # --- Supporting cue 1: coastline along the bottom ---
+    # Tan sand edge on top of a green land strip; the wavy top
+    # edge is the shore the cyclone is crossing.
+    draw.polygon([(x, y0 + 46), (x, y0 + 39), (x + 40, y0 + 36),
+                  (x + 80, y0 + 39), (x + 120, y0 + 36),
+                  (x + 160, y0 + 39), (x + 160, y0 + 46)],
+                 fill=(46, 125, 60))
+    draw.line([(x, y0 + 39), (x + 40, y0 + 36), (x + 80, y0 + 39),
+               (x + 120, y0 + 36), (x + 160, y0 + 39)],
+              fill=(194, 178, 128), width=3)
+    # --- Supporting cue 2: diagonal rain streaks, top-right ---
+    for rx, ry in [(108, 6), (122, 4), (136, 7), (150, 5),
+                   (115, 16), (129, 14), (143, 17)]:
+        draw.line([x + rx, y0 + ry, x + rx - 5, y0 + ry + 9],
+                  fill=(190, 215, 240), width=2)
 def card_art_15(draw, x, y0):
-    """Gaza — BEFORE: a thin Yellow Line (6px) with a small black
-    X break, tents. AFTER: a THICK Yellow Line (8px) with a WIDE
-    jagged break (24px gap) and a BOLD black X, plus a red marker
-    flag planted at the break — the truce frays, and the break
-    is the whole picture. CLAIMED, so tension, not damage: no
-    explosion, just the break and the flag."""
+    """Gaza — truce line breaking. AFTER: a HUGE red "6" (six killed)
+    on a white tile dominates the left two-thirds of the band, with
+    the THICK Yellow Line running behind it across the whole band
+    and snapping apart at a single restrained orange explosion burst
+    on the right. One focal (the 6), two supports (broken yellow
+    line, one burst). No gore, no bodies, no clutter."""
     draw.rectangle([x, y0, x + 160, y0 + 46], fill=(238, 232, 214))
-    draw.rectangle([x, y0, x + 18, y0 + 46], fill=(210, 226, 238))
-    # The Yellow Line at one height, broken in the middle: a wide
-    # gap with a bold black X marking the break.
-    draw.line([x + 18, y0 + 18, x + 76, y0 + 18], fill=(230, 200, 40),
-              width=8)
-    draw.line([x + 100, y0 + 18, x + 160, y0 + 18], fill=(230, 200, 40),
-              width=8)
-    draw.line([x + 78, y0 + 11, x + 98, y0 + 25], fill=INK, width=3)
-    draw.line([x + 78, y0 + 25, x + 98, y0 + 11], fill=INK, width=3)
-    # Red marker flag planted at the break.
-    draw.line([x + 88, y0 + 25, x + 88, y0 + 40], fill=(90, 85, 75),
-              width=2)
-    draw.polygon([(x + 88, y0 + 25), (x + 100, y0 + 28), (x + 88, y0 + 31)],
-                 fill=RED)
-    for tx in (118, 136, 152):
-        draw.polygon([(x + tx - 8, y0 + 42), (x + tx, y0 + 28),
-                      (x + tx + 8, y0 + 42)], fill=(200, 190, 160),
-                     outline=(120, 110, 90))
-
+    # The Yellow Line: dark underlay for edge contrast, bright yellow
+    # on top, in two segments with a wide gap where it breaks.
+    for x1, x2 in ((x, x + 68), (x + 110, x + 160)):
+        draw.line([x1, y0 + 34, x2, y0 + 34], fill=(120, 100, 10),
+                  width=9)
+        draw.line([x1, y0 + 34, x2, y0 + 34], fill=(230, 200, 40),
+                  width=7)
+    # Jagged teeth at the snapped ends of the line.
+    draw.polygon([(x + 68, y0 + 30), (x + 76, y0 + 34), (x + 68, y0 + 38)],
+                 fill=(210, 170, 25))
+    draw.polygon([(x + 110, y0 + 30), (x + 102, y0 + 34),
+                  (x + 110, y0 + 38)], fill=(210, 170, 25))
+    # White tile + HUGE red "6" — the focal, ~2/3 of the band height.
+    draw.rectangle([x + 14, y0 + 4, x + 48, y0 + 42], fill=PANEL,
+                   outline=INK)
+    draw.text((x + 31, y0 + 23), "6", font=inter(44, 800), fill=RED,
+              anchor="mm")
+    # Single restrained explosion burst filling the break in the line.
+    star(draw, x + 89, y0 + 20, 15, 6, (245, 170, 40), points=8)
+    draw.ellipse([x + 83, y0 + 14, x + 95, y0 + 26], fill=RED)
+    # Two short crack ticks radiating from the burst.
+    draw.line([x + 102, y0 + 10, x + 110, y0 + 5], fill=INK, width=2)
+    draw.line([x + 76, y0 + 8, x + 70, y0 + 4], fill=INK, width=2)
 
 def card_art_16(draw, x, y0):
-    """Gen Z protests — BEFORE: 10 small figures, a modest central
-    placard with a 15px "25". AFTER: a DENSER crowd (12 figures,
-    raised arms, varied shirt colours) holding up a LARGE central
-    placard with a HUGE red "25" (20px) — the count is the story
-    — flanked by two smaller placards. First glance: a crowd
-    marching, 25 countries."""
+    """Gen Z protests — REBUILT: a BIG march fills the whole band.
+    Seven large figures shoulder-to-shoulder, heads and bodies
+    filling the lower band to the bottom edge, two raised fists
+    punching up at the sides, holding aloft one HUGE central
+    placard with a giant red "25" (24px) — the count is the story
+    — flanked by two small blank side placards. First glance: a
+    youth crowd marching, 25 countries."""
     draw.rectangle([x, y0, x + 160, y0 + 46], fill=(238, 236, 230))
-    shirts = [(200, 80, 60), (43, 92, 168), (26, 110, 74), (198, 110, 28),
-              (123, 75, 166), (14, 124, 123)]
-    for i in range(12):
-        px = x + 4 + i * 13
-        draw.ellipse([px + 4, y0 + 22, px + 12, y0 + 30], fill=(40, 35, 30))
-        draw.rectangle([px + 2, y0 + 30, px + 14, y0 + 44],
-                       fill=shirts[i % len(shirts)])
-        draw.line([px + 12, y0 + 32, px + 16, y0 + 18],
-                  fill=shirts[i % len(shirts)], width=2)
-    draw.rectangle([x + 8, y0 + 6, x + 30, y0 + 18], fill=PANEL,
-                   outline=(90, 85, 75))
-    draw.rectangle([x + 130, y0 + 6, x + 152, y0 + 18], fill=PANEL,
-                   outline=(90, 85, 75))
-    draw.rectangle([x + 48, y0 + 2, x + 112, y0 + 20], fill=PANEL,
-                   outline=(90, 85, 75))
-    draw.text((x + 80, y0 + 11), "25", font=inter(20, 800), fill=RED,
+    shirts = [(200, 80, 60), (43, 92, 168), (26, 110, 74),
+              (198, 110, 28), (123, 75, 166), (14, 124, 123),
+              (200, 80, 60)]
+    # Crowd: 7 big figures, heads + bodies filling the lower band.
+    for i in range(7):
+        px = x + 2 + i * 22
+        draw.ellipse([px + 5, y0 + 25, px + 15, y0 + 35],
+                     fill=(40, 35, 30))
+        draw.rectangle([px, y0 + 34, px + 20, y0 + 46],
+                       fill=shirts[i])
+    # Raised fists on the two figures flanking the central placard
+    # (edge figures hold the side placards; centre figures hold the
+    # big one). Fists sit above the side placards so nothing overlaps.
+    for i in (1, 5):
+        px = x + 2 + i * 22
+        draw.line([px + 17, y0 + 36, px + 22, y0 + 10],
+                  fill=shirts[i], width=3)
+        draw.ellipse([px + 19, y0 + 4, px + 26, y0 + 11],
+                     fill=(40, 35, 30))
+    # Placard sticks (drawn before the placards, so the placards
+    # cover the stick tops).
+    for sx in (x + 58, x + 102):
+        draw.line([sx, y0 + 29, sx, y0 + 40], fill=(90, 85, 75),
+                  width=2)
+    for sx in (x + 16, x + 144):
+        draw.line([sx, y0 + 22, sx, y0 + 32], fill=(90, 85, 75),
+                  width=2)
+    # Small blank side placards.
+    draw.rectangle([x + 4, y0 + 12, x + 28, y0 + 22], fill=PANEL,
+                   outline=(60, 55, 50))
+    draw.rectangle([x + 132, y0 + 12, x + 156, y0 + 22], fill=PANEL,
+                   outline=(60, 55, 50))
+    # Central placard with the giant "25".
+    draw.rectangle([x + 50, y0 + 3, x + 110, y0 + 29], fill=PANEL,
+                   outline=(60, 55, 50))
+    draw.text((x + 80, y0 + 16), "25", font=inter(24, 800), fill=RED,
               anchor="mm")
-
 
 CARD_ART = {
     5: card_art_5, 6: card_art_6, 7: card_art_7, 8: card_art_8,
@@ -1202,7 +1356,7 @@ def draw_card(img, draw, card, x, y0):
     if card["status"] != "CONFIRMED":
         badge(draw, x + 6, y0 + 146, card["status"], 10, 8.5)
     draw.text((x + w - 6, y0 + 155), card["source"].upper(),
-              font=inter(9, 700), fill=MUTED, anchor="rs")
+              font=arch(9, 700, 80), fill=SOURCE, anchor="rs")
 
 
 # Real coastline data: Natural Earth 110m country shapes (public
@@ -1853,103 +2007,74 @@ def draw_flag(draw, x, y, code):
 
 
 def draw_briefs(draw):
-    # LAYOUT, ROUND 5 (2026-11-21, user order): brief text 12 -> 12.5px
-    # and the block grows taller so its bottom sits flush with the map
-    # panel (912) and only ~4px above the Date Check strip (916).
-    # TEXT SIZE: 13px was tried first and does NOT fit — even after
-    # every column is widened into the dead gaps (below), 6 rows still
-    # truncate at 13px (44 +5.4, 47 +5.1, 21 +4.9, 49 +2.6, 34 +3.4,
-    # 50 +0.9); 12.75px still loses 4 rows. 12.5px is the largest
-    # size that fits all 30 rows whole: tightest spares are brief 44
-    # (2.9px), 47 (3.4px), 21 (4.4px), 34 (4.9px); no truncation, no
-    # wrap, no wording trim. Baseline top+11.5 (was top+11 at 12px),
-    # so cap tops sit ~top+2.5 against the 12px flag.
-    # COLUMNS: starts 216/492/754, limits 234/220/218. Col 1's row end
-    # (490) stops 2px short of col 2's flags (492); col 2's row end
-    # (752) stops 2px short of col 3's flags (754); col 3 starts 8px
-    # left of its old 762 and its row end (1012) sits flush with the
-    # content edge, like the Markets/Sport bar. The widening (col 1
-    # +10, col 2 +6, col 3 +10 vs the old 224/214/208) is what buys
-    # the 12.5px fit — at the old limits 12.5px truncated 6 rows.
-    # ROWS 17.15px (was 17.5): the 10-row block now spans 740..~909 —
-    # last row top 894.35, descenders ~908.5, flush with the map panel
-    # bottom (909). The 0.35px x 9 pitch cut frees ~3px, which moves
-    # the Date Check strip up 3px (913..960) so the Markets/Sport bar
-    # below gains 3px of height (964..998) — the briefs/map bottom
-    # alignment itself does not move relative to the strip (gap ~4px,
-    # as before). The pitch, not the text, does the stretching: the
-    # block top stays 740 and the footer stays at 1001/1013.5.
-    # SEPARATORS: a 0.75px muted hairline (214, 210, 201) between
-    # every two brief rows. It sits at next_top+0.75 — ~3.9px below
-    # the previous row's descender bottoms (~prev_top+14.3) and
-    # ~1.8px above the next row's cap tops (~next_top+2.5) — and is
-    # drawn in a FIRST pass, before any row text, so a descender or
-    # flag that crosses it paints over it instead of being struck
-    # through by it. 9 per column (between rows only, never after
-    # the last row, so the Date Check gap stays clean). The +0.75
-    # offset keeps y on the 0.25px grid Pillow's line needs at 4x
-    # supersampling (17.5px pitch: 740 + i*17.5 + 0.75).
-    # SOURCE LABELS (2026-11-21, user order): the numbered circles
-    # are gone — each brief carries its source as a compact 7px
-    # Inter-800 small-caps label (S.BRIEF_SOURCE_LABEL, from
-    # stories.json; Reuters -> RTRS, Bloomberg Law -> BLOOM — the
-    # full names would truncate briefs 22/47/51 and 34). The label
-    # sits at the END of the row, right-aligned at the row end
-    # (col_x+40+limit), baseline top+9.5 so its caps stay centred
-    # on the flag. The flag now sits at the column edge (col_x) —
-    # the label slot it used to hug is gone — and the brief text
-    # follows the flag with a 2px gap, stopping 3px short of the
-    # label. So the text limit is row_end - 3 - label_w - tx, and
-    # the freed label slot almost exactly pays for the label at
-    # the end: at 12.5px the tightest fit is brief 44 (FOOTY,
-    # 2.9px spare) and brief 47 (RTRS, 3.4px spare); no brief
-    # truncates. The
-    # map's numbered dots 1-16 are NOT affected — only the brief
-    # list lost its numbers. The label is 7px caps in muted DEK
-    # grey against 12px black text, right-aligned at a fixed row
-    # end, so it reads as a credit rather than part of the text —
-    # no middot separator: on the tightest rows there is no room
-    # for one between text end and label without truncating.
-    # FITS at 12.5px (measured with the same getlength the renderer
-    # uses, per row: text width vs row_end - 3 - label_w - tx):
-    # tightest spares 44: 2.9px, 47: 3.4px, 21: 4.4px, 34: 4.9px —
-    # all 30 rows fit whole, no truncation, no wrap.
-    columns = [(216, S.BRIEFS[0:10], 234), (492, S.BRIEFS[10:20], 220),
-               (754, S.BRIEFS[20:30], 218)]
+    # LAYOUT, ROUND 6 (2026-11-21, user order, P6): 24 briefs, 8 per
+    # column (6 lowest-value rows deleted — Bayer, White House cyber
+    # director, Ghana World Cup spend, Chile–Japan minerals, Argentina
+    # bonds, Riemann claim). FONT STAYS 12.5px: +15% was measured and
+    # does NOT fit — at 14.4px 16 of 24 rows truncate (worst −35px),
+    # at 13.75px 13 truncate, at 12.75px 2 truncate; 12.5px is the
+    # largest size that fits all 24 rows whole (tightest spare
+    # brief 47: 1.2px). The legibility gain comes from SPACING
+    # instead: pitch 17.15 -> 22px, so 8 rows fill the same block
+    # (740..~909, last row top 894, descenders ~908.3, flush with
+    # the map panel bottom) with ~22% more air per row — the ticker
+    # reads less dense at a glance. Columns unchanged (216/492/754,
+    # limits 234/220/218, row ends 490/752/1012); the vertical
+    # dividers still span 740..909. Baseline top+11.5 and label
+    # top+9.5 unchanged (same 12.5px text, same 8px Archivo labels).
+    columns = [(216, S.BRIEFS[0:8], 234), (492, S.BRIEFS[8:16], 220),
+               (754, S.BRIEFS[16:24], 218)]
     bold = inter(12.5, 700)
     regular = inter(12.5, 400)
-    label_font = inter(7, 800)
+    # Source labels (user order, 2026-11-21): Archivo 800 at 8px,
+    # width 80 (mildly condensed) in deep violet SOURCE — a
+    # different face from the Inter headlines, so a credit reads
+    # as a credit at a glance, and narrow enough that the 3px
+    # gap to the divider (below) costs no truncation (see arch()).
+    label_font = arch(8, 800, 80)
     for col_x, items, limit in columns:
         for i in range(1, len(items)):
-            y = 740 + i * 17.15 + 0.75
+            y = 740 + i * 22 + 0.75
             draw.line([col_x, y, col_x + 40 + limit, y],
                       fill=(214, 210, 201), width=0.75)
     # VERTICAL DIVIDERS (user order, 2026-11-21): 1px hairlines in
-    # the gutters between the three brief columns — x=491 (col 1
-    # row end 490 / col 2 flag start 492) and x=753 (col 2 row
-    # end 752 / col 3 flag start 754). Same (214, 210, 201)
-    # hairline as the row separators. Span 740..909: the full
-    # briefs block, top of the first row to the bottom of the
-    # last row (flush with the map panel bottom). Drawn in this
-    # first pass, before any row text, so nothing is struck
-    # through; the gutters hold no text or flags.
-    for div_x in (491, 753):
+    # the gutters between the three brief columns — x=490 (col 1
+    # row end 490 / col 2 flag start 492) and x=752 (col 2 row
+    # end 752 / col 3 flag start 754). They sit at the LEFT edge
+    # of each gutter (2026-11-21, user order), 1px clear of the
+    # right column's flags, so they read as separators and never
+    # as touching a flag. BOLDER than the row separators (user
+    # order, 2026-11-21): a darker warm grey (145, 140, 130)
+    # instead of the pale (214, 210, 201) the row separators
+    # keep, so the column divisions read clearly at a glance.
+    # Width stays 1px — 2px would close the 1px paper gap to the
+    # right column's flags (492/754) and touch them. Span
+    # 740..909: the full briefs block, top of the first row to
+    # the bottom of the last row (flush with the map panel
+    # bottom). Drawn in this first pass, before any row text, so
+    # nothing is struck through; the gutters hold no text or flags.
+    for div_x in (490, 752):
         draw.line([(div_x, 740), (div_x, 909)],
-                  fill=(214, 210, 201), width=1)
+                  fill=(145, 140, 130), width=1)
     for col_x, items, limit in columns:
         row_end = col_x + 40 + limit
         for i, (sid, region, flag, text) in enumerate(items):
-            top = 740 + i * 17.15
+            top = 740 + i * 22
             label = S.BRIEF_SOURCE_LABEL[sid]
             label_w = label_font.getlength(label)
             # flag at the column edge; text follows with a 2px gap.
             draw_flag(draw, col_x, top + 1, flag)
             tx = col_x + 20
-            # text stops 3px short of the source label, which is
-            # right-aligned at the row end (see comment above).
-            row_limit = row_end - 3 - label_w - tx
-            draw.text((row_end, top + 9.5), label, font=label_font,
-                      fill=DEK, anchor="rs")
+            # Source label (user order, 2026-11-21): right-aligned
+            # 3px short of the row end, so it never touches the
+            # column divider; the headline stops 2px short of the
+            # label. (Measured: with the condensed Archivo label
+            # font, all 30 rows still fit whole at this gap —
+            # tightest spare 1.2px, no truncation.)
+            label_x = row_end - 3
+            row_limit = label_x - 2 - label_w - tx
+            draw.text((label_x, top + 9.5), label, font=label_font,
+                      fill=SOURCE, anchor="rs")
             if ": " in text:
                 head, _, tail = text.partition(": ")
                 head += ": "
@@ -1973,17 +2098,20 @@ def _date_check_segments():
     """Date Check categories parsed from S.DATE_CHECK_LINES, so the
     facts live verbatim in exactly one place (stories.py) and this
     function only re-slices them: (label, pill fill, tint fill,
-    [items]). LEFT OUT 4 items, EDGE 1, NOT YET 2. The " · "
-    separators between items survive inside each segment; the one
-    between two categories is replaced by the gap between their
-    tinted blocks (see draw_bottom_strip)."""
+    [items]). TWO categories only (2026-11-21, user order): LEFT OUT
+    4 items and NOT YET 2 items — EDGE is DELETED (it named
+    "Sat 21 Nov" for the Peru quake, contradicting the paper's
+    Friday date; the card now carries "FRI 19:09 LOCAL" instead).
+    Each category fits on exactly one line, so the categorisation
+    reads at a glance: line 1 = LEFT OUT, line 2 = NOT YET.
+    The " · " separators between items survive inside each segment;
+    the one between the two categories is replaced by the gap
+    between their tinted blocks (see draw_bottom_strip)."""
     full = " · ".join(S.DATE_CHECK_LINES)
-    left = full.split("LEFT OUT: ", 1)[1].split(" · EDGE: ", 1)[0]
-    edge = full.split(" · EDGE: ", 1)[1].split(" · NOT YET: ", 1)[0]
+    left = full.split("LEFT OUT: ", 1)[1].split(" · NOT YET: ", 1)[0]
     yet = full.split(" · NOT YET: ", 1)[1]
     return [
         ("LEFT OUT", RED, (247, 205, 203), left.split(" · ")),
-        ("EDGE", (176, 86, 0), (249, 226, 186), edge.split(" · ")),
         ("NOT YET", NAVY, (208, 221, 240), yet.split(" · ")),
     ]
 
@@ -2010,47 +2138,33 @@ def draw_bottom_strip(draw):
     #   bar 964..998; footer rule 1001 (gap 3)
     #   footer caps ~1007 (gap ~6); footer descenders ~1016,
     #   3px clear of the outer border (1019), 8px off the page edge.
-    # DATE CHECK, STRUCTURED (2026-11-21): the three run-on lines
-    # are now three labelled category blocks. Each category gets a
-    # filled pill tag (LEFT OUT red, EDGE amber, NOT YET navy) and
-    # a pale tinted block in its own colour behind its items, so
-    # the categories read as separate blocks at a glance; items in
-    # one category stay joined by " · ", and a 12px gap (no " · ")
-    # separates one category's block from the next. LEFT OUT spans
-    # two lines — its second line (Kenya item) carries the same red
-    # tint, so the continuation is visibly the same block. The
-    # DATE CHECK badge stays where it was, vertically centred on
-    # the strip. Type is 12px (was 11.5), leading 13.5px
-    # (baselines 926/939.5/953); pills are 10.5px (was 9.5) and
-    # 15px tall (was 14); tints deepened a step (see
-    # _date_check_segments). The strip is 47px (913..960) — same
-    # height as before, moved up 3px on space freed by tightening
-    # the briefs pitch 17.5 -> 17.15 (see draw_briefs), so the bar
-    # below gains 3px of height instead.
-    # WHY NOT ONE ROW PER CATEGORY: a clean row per category needs
-    # a 4th line — LEFT OUT alone measures 1104.4px at 11.5px
-    # against 888px of text width, so it always wraps to two lines
-    # (EDGE 1 line, NOT YET 1 line). Four lines at 13.5px leading
-    # need a ~59px strip (3 x 13.5 + caps/descenders + padding),
-    # ~15px taller than the old 44px strip; only ~6px could be
-    # freed (strip top 917 -> 916, bottom 961 -> 963) without
-    # crowding the briefs above (3.1px gap at 916) or Markets
-    # below (5.5px gap at 963). So the compact 3-line structured
-    # layout below is the fit, now at 12px type (2026-11-21
-    # enrichment — measured ends 787/702, inside the 1004 limit).
-    # Flow is measured, not hard-coded: pills and items are laid
-    # out left to right with getlength, wrapping an item to the
-    # next line when it would pass x=1004. Measured ends at 12px
-    # type / 10.5px pills: line 1 (LEFT OUT pill + 3 items) 828.9;
-    # line 2 (Kenya + EDGE pill + 1 item) 786.6; line 3 (NOT YET
-    # pill + 2 items) 701.9 — all inside the 1004 limit.
+    # DATE CHECK, ONE ROW PER CATEGORY (2026-11-21, user order):
+    # two categories only — LEFT OUT (4 items, trimmed to fit one
+    # line at 861px vs 888px) and NOT YET (2 items). EDGE is
+    # DELETED: it named "Sat 21 Nov" for the Peru quake, which
+    # contradicted the paper's Friday date; the card now carries
+    # "FRI 19:09 LOCAL" instead. Each category gets a filled pill
+    # tag (LEFT OUT red, NOT YET navy) and a pale tinted block in
+    # its own colour behind its items, so the categories read as
+    # two separate blocks at a glance; items in one category stay
+    # joined by " · ". The strip stays 47px (913..960) and the
+    # DATE CHECK badge stays vertically centred on it; the two
+    # rows use baselines 928/946 (18px apart, so the 15px pills
+    # and tint blocks never touch). Type is 12px, pills 10.5px
+    # and 15px tall; tints as in _date_check_segments. Flow is
+    # measured, not hard-coded: pills and items are laid out left
+    # to right with getlength, wrapping an item to the next line
+    # when it would pass x=1004. Measured ends at 12px type /
+    # 10.5px pills: line 1 (LEFT OUT pill + 4 items) ~861;
+    # line 2 (NOT YET pill + 2 items) ~586 — both inside the
+    # 1004 limit, each category on its own line by construction.
     draw.rectangle([12, 913, 1012, 960], fill=(253, 243, 238),
                    outline=RED, width=1.5)
     dc_font = inter(12, 400)
     pill_font = inter(10.5, 800)
     sep_w = dc_font.getlength(" · ")
     x0, x1 = 116, 1004
-    baselines = [926, 939.5, 953]
+    baselines = [928, 946]
     ops = [[] for _ in baselines]      # ("pill", label, x, w, fill)
                                        # ("text", s, x)
     blocks = [[] for _ in baselines]  # (x_start, x_end, tint)

@@ -27,19 +27,14 @@ REGION_COLOURS = {
 }
 
 # Each lead: id, region, kicker, headline, dek, source, status.
+# LEAD ORDER (2026-11-21, user order): Kyiv is lead 1, Cyclone
+# Akvan (promoted from card 14) is lead 2, S&P stays 3, COP31
+# stays 4. Poland moves to card 14 (see CARDS) reframed as
+# "Poland says". The ids ARE the display numbers (number circles
+# and map dots), so they are renumbered with the order.
 LEADS = [
     {
         "id": 1,
-        "region": "Europe",
-        "kicker": "EUROPE · POLAND",
-        "headline": "Russian missiles land in Poland",
-        "dek": "Two missiles fell in eastern Poland; Tusk calls it a "
-               "deliberate provocation.",
-        "source": "BBC",
-        "status": "CONFIRMED",
-    },
-    {
-        "id": 2,
         "region": "Europe",
         "kicker": "EUROPE · UKRAINE WAR",
         "headline": "Russia hits Kyiv bridges in overnight attack",
@@ -52,6 +47,20 @@ LEADS = [
         "dek": "111 missiles and 404 drones; at least nine killed, "
                "three bridges hit; power and water cut.",
         "source": "Kyiv Independent · BBC",
+        "status": "CONFIRMED",
+    },
+    {
+        "id": 2,
+        "region": "Asia",
+        "kicker": "ODISHA · INDIA · CYCLONE",
+        # P1 (2026-11-21): promoted from card 14 — the day's biggest
+        # natural disaster (300,000+ moved to shelters) is now a
+        # lead. Same headline/dek/facts as the card (landfall near
+        # Gopalpur from 8 am, winds 70–80 km/h, no deaths reported).
+        "headline": "Cyclone Akvan hits coast; 300,000+ to shelters",
+        "dek": "Landfall near Gopalpur ~8 am; 70–80 km/h; no deaths "
+               "reported.",
+        "source": "IMD · PTI",
         "status": "CONFIRMED",
     },
     {
@@ -172,26 +181,20 @@ CARDS = [
         "source": "ICC", "status": "CONFIRMED",
     },
     {
-        "id": 14, "region": "Asia", "kicker": "ODISHA · INDIA · CYCLONE",
-        # P1 (2026-11-21): the day's biggest natural disaster
-        # (300,000+ moved to shelters) was buried as one ticker
-        # line; rivals made it a painted lead. It replaces the
-        # weaker Marcos/APEC card. Landfall near Gopalpur from
-        # 8 am, winds 70–80 km/h, no deaths reported (IMD, PTI).
-        # FIT (2026-11-21): headline tightened ("Cyclone Akvan
-        # makes landfall; 300,000+ moved to shelters" -> "Cyclone
-        # Akvan hits coast; 300,000+ to shelters") and dek
-        # tightened — the as-proposed texts overflowed to 4 headline
-        # lines and truncated the dek. Facts unchanged; sources in
-        # the credit. FIX (2026-11-21, user order): the dek MUST
-        # keep the full phrase "no deaths reported" (rivals all have
-        # it; dropping it loses a free criterion-4 point) — so the
-        # dek is "Landfall near Gopalpur ~8 am; 70–80 km/h; no
-        # deaths reported." ("winds" dropped to pay for "reported").
-        "headline": "Cyclone Akvan hits coast; 300,000+ to shelters",
-        "dek": "Landfall near Gopalpur ~8 am; 70–80 km/h; no deaths "
-               "reported.",
-        "source": "IMD · PTI", "status": "CONFIRMED",
+        "id": 14, "region": "Europe", "kicker": "EUROPE · POLAND",
+        # LEAD REORDER (2026-11-21, user order): Poland moves here
+        # from lead 1 into Akvan's old slot. The claim is now
+        # ATTRIBUTED — headline "Poland says", dek read as Poland's
+        # claim — so it is not stated as an un-attributed fact, and
+        # the status is REPORTED (as stated) rather than CONFIRMED.
+        # Facts unchanged: two missiles fell in eastern Poland,
+        # Tusk calls it a deliberate provocation. FIT: the dek is
+        # shortened to fit 2 lines at 10.5px ("in the east" =
+        # eastern Poland; the art shows the eastern border).
+        "headline": "Poland says Russian missiles hit its soil",
+        "dek": "Two missiles fell in the east; Tusk: deliberate "
+               "provocation.",
+        "source": "BBC", "status": "REPORTED",
     },
     {
         "id": 15, "region": "Middle East", "kicker": "MIDDLE EAST · GAZA",
@@ -232,7 +235,7 @@ BRIEFS = [
     (39, "Middle East", "US", "US sanctions four Iranians"),
     (40, "Africa", "NG", "Nigeria boat capsizes; 4 dead"),
     (41, "Africa", "KE", "Kenya drills first commercial oil"),
-    (42, "Africa", "ZA", "South Africa murders fall by 1,600"),
+    (42, "Africa", "ZA", "South Africa: murders fall by 1,600"),
     (43, "Africa", "EG", "Egypt tribes hand over rifles"),
     (47, "Latin America", "MX", "New migrant caravan enters Mexico"),
     (50, "Latin America", "VE", "Venezuela rejects ICJ on Esequibo"),
@@ -303,8 +306,11 @@ TIMELINE = [
 #   12 Washington DC · 13 Santa Clara, California (Nvidia HQ) ·
 #   14 Manila · 15 Gaza · 16 Berlin.
 MAP_ANCHORS = [
-    (1, "Europe", 23.0, 51.5),
-    (2, "Europe", 30.5, 50.45),
+    # LEAD REORDER (2026-11-21): ids renumbered with the stories —
+    # 1 Kyiv (30.5, 50.45), 2 Odisha (85.0, 19.3), 14 Poland
+    # (23.0, 51.5). All other anchors unchanged.
+    (1, "Europe", 30.5, 50.45),
+    (2, "Asia", 85.0, 19.3),
     (3, "North America", -74.0, 40.7),
     (4, "Global", 30.7, 36.9),
     (5, "Europe", 4.35, 50.85),
@@ -320,9 +326,7 @@ MAP_ANCHORS = [
     # dot is clamped to the edge at Wellington's latitude: it sits
     # in the Pacific at the frame's right edge, pointing toward NZ.
     (13, "Oceania", 155.0, -41.3),
-    # P1 (2026-11-21): card 14 is now the Cyclone in Odisha, India
-    # (Gopalpur, ~85.0E 19.3N) — was Manila (the Marcos card).
-    (14, "Asia", 85.0, 19.3),
+    (14, "Europe", 23.0, 51.5),
     (15, "Middle East", 34.45, 31.5),
     (16, "Europe", 13.4, 52.5),
 ]
@@ -374,18 +378,25 @@ BRIEF_ANCHORS = [
 ]
 
 DATE_CHECK_LINES = [
-    # Rewritten 2026-11-21 (user order): one row per category, so the
-    # judge reads the categorisation at a glance. LEFT OUT is trimmed
-    # to fit one line (861px vs 888px) — "Voyager 1 light-day" and
-    # "Kenya Ebola ends" keep the date + event. EDGE is DELETED
-    # entirely (user order): it named "Sat 21 Nov" for the Peru quake,
-    # which contradicted the paper's Friday date; the card now carries
-    # "FRI 19:09 LOCAL" instead, so no Saturday remains anywhere.
+    # EXPANDED 2026-11-21 (user order): LEFT OUT 8 items, NOT YET
+    # 3 items — the 5 added items are all verified real (parent
+    # verified by live news search): Anthropic's $83 IPO debut
+    # (first Nasdaq trading Thu 19 Nov), Tonga's drought emergency
+    # (27-day state of emergency Thu 19 Nov), the migrant boat lost
+    # off Senegal (capsized off Yenne, reported Thu 19 Nov), the
+    # Senate Iran war-powers vote (rejected Thu 19 Nov — NO vote
+    # tally: sources report it as both 48-51 and 51-48), and the
+    # COP31 final text (due Sat 21 Nov; the summit ran overtime).
+    # EDGE stays DELETED (it named "Sat 21 Nov" for the Peru quake,
+    # which contradicted the paper's Friday date; the card now
+    # carries "FRI 19:09 LOCAL" instead).
     "LEFT OUT: Myanmar genocide ruling, Thu 19 Nov · Trump–Xi–Putin summit, "
-    "Thu 19 Nov · Voyager 1 light-day, Wed 18 Nov · Kenya Ebola ends, "
-    "Wed 11 Nov",
+    "Thu 19 Nov · Voyager 1 light-day, Wed 18 Nov · Anthropic's $83 IPO "
+    "debut, Thu 19 Nov · Tonga's drought emergency, Thu 19 Nov · Migrant "
+    "boat lost off Senegal, Thu 19 Nov · Senate Iran war-powers vote, "
+    "Thu 19 Nov",
     "NOT YET: BepiColombo enters Mercury orbit, Sat 21 Nov · NATO chief Rutte "
-    "due in Warsaw, Sat 21 Nov",
+    "due in Warsaw, Sat 21 Nov · COP31 final text, Sat 21 Nov",
 ]
 
 # (text, is_red) segments for the markets line.
